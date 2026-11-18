@@ -381,6 +381,10 @@ body.running .tree { max-height: 150px; }
 .switch.na { opacity: .5; cursor: not-allowed; }
 
 .actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+.convert-warn { display: grid; gap: 4px; padding: 13px 15px; border-radius: var(--r-lg); box-shadow: 0 0 0 1.5px var(--warn) inset; font-size: 13px; line-height: 1.45; animation: rise .35s var(--ease) both; }
+.convert-warn strong { font-weight: 600; color: var(--warn); }
+.convert-warn span { color: var(--muted); }
+.convert-warn .row { margin-top: 8px; }
 
 /* run */
 .run { display: grid; gap: 14px; animation: rise .4s var(--ease) both; }

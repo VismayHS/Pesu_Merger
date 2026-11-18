@@ -130,6 +130,9 @@ Works in **Chrome, Edge, Brave, Chromium, Vivaldi, Arc and Firefox**, on **Windo
 
 The extension uses these to turn PowerPoint and Word files into PDF. Both are free (except Microsoft Office). Skip any part you already have.
 
+> [!TIP]
+> **Shortcut:** the installer in [step 4](#4-connect-the-converter) checks for all of this and offers to install anything that's missing. On Windows it can install both Python and LibreOffice for you. So if this step feels like a lot, go straight to step 2 and let the installer handle it.
+
 <details open>
 <summary><b>🪟 Windows</b></summary>
 
@@ -230,14 +233,19 @@ Firefox works too (version 128 or newer), but it adds extensions differently. Do
 
 ### 4. Connect the converter
 
-This connects the extension to Office or LibreOffice from step 1. It sets itself up for every supported browser on your computer, Firefox included. It needs no admin rights.
+The installer does everything in one go:
+
+- It checks for **Python** and for **Microsoft Office or LibreOffice**.
+- If something is missing, it asks *"Install it now? [Y/n]"*. Press <kbd>Enter</kbd> to say yes, and it installs it for you. LibreOffice is about a 350 MB download.
+- It connects the extension to every supported browser on your computer, Firefox included, then tests that everything works.
 
 <details open>
 <summary><b>🪟 Windows</b></summary>
 
 1. Open the project folder (`Pesu_Merger-main`), then the **`native-host`** folder.
 2. **Double-click `install.bat`**. If Windows asks whether to run it, click **Run**. If it says *"Windows protected your PC"*, click **More info** → **Run anyway**.
-3. A black window lists what it found, for example `MS Office: PowerPoint, Word, Excel` or a `LibreOffice: …` path. When it says **Done**, press any key to close it.
+3. A black window shows what it found. If it asks to install Python or LibreOffice, press <kbd>Enter</kbd>. For LibreOffice, Windows asks *"Do you want to allow this app to make changes?"*: click **Yes**.
+4. When it says **ALL SET!**, press any key to close the window.
 
 </details>
 
@@ -247,7 +255,9 @@ This connects the extension to Office or LibreOffice from step 1. It sets itself
 1. Open **Terminal**: press <kbd>⌘</kbd> + <kbd>Space</kbd>, type **Terminal** and press <kbd>Enter</kbd>.
 2. Type `bash` followed by a space. **Don't press Enter yet.**
 3. In Finder, open the project folder, then **`native-host`**, and **drag the file `install.sh` into the Terminal window**. Its location appears after `bash `.
-4. Press <kbd>Enter</kbd>. When it says **Done**, you can close Terminal.
+4. Press <kbd>Enter</kbd>. When it says **ALL SET!**, you can close Terminal.
+
+If you use Homebrew, the installer can install Python and LibreOffice for you. Without Homebrew, it opens the right download page and tells you what to click.
 
 </details>
 
@@ -260,17 +270,21 @@ From the project folder:
 bash native-host/install.sh
 ```
 
+It can install Python and LibreOffice with apt, dnf, pacman or zypper. It asks for your password first.
+
 A **Snap or Flatpak** browser can't start local helpers. Use the `.deb`/`.rpm` build of Chrome, Brave or Edge.
 
 </details>
+
+**It says NOT FINISHED?** Something is still missing, and the window tells you exactly what to do. Usually that's installing Python or LibreOffice from the page it opened for you, then running the installer again.
 
 > Moved the project folder later? Run the installer again. To remove the converter, run `native-host\uninstall.bat` (Windows) or `bash native-host/uninstall.sh` (macOS/Linux).
 
 ### 5. Check that everything is ready
 
-Restart your browser once, then open **PESU Downloader** by clicking its icon. The top-right corner should say **Converter: MS Office** or **Converter: LibreOffice**. 🎉 You're ready: see [How to use it](#how-to-use-it).
+Restart your browser once, then open **PESU Downloader** by clicking its icon. The top-right corner should say **Converter: MS Office** or **Converter: LibreOffice** (or both). 🎉 You're ready: see [How to use it](#how-to-use-it).
 
-If a banner says the converter isn't installed, or that it needs Office or LibreOffice, press **Re-check**. If it still shows, see [Troubleshooting](#troubleshooting).
+If a banner says **Set up the converter** or **Install LibreOffice**, press **Re-check**. If it still shows, see [Troubleshooting](#troubleshooting). If you press **Start** while the converter isn't ready, the extension warns you first, so you can set it up or choose **Start anyway**.
 
 ---
 
@@ -415,9 +429,10 @@ The extension talks **only** to `pesuacademy.com` and its file server `files.pes
 ## Troubleshooting
 
 <details>
-<summary><b>"Converter not installed"</b></summary>
+<summary><b>"Set up the converter" or "Install LibreOffice" keeps showing</b></summary>
 
-- Run the installer for your system ([step 4](#4-connect-the-converter)), then press **Re-check**. If the browser was already open, restart it once.
+- Run the installer for your system ([step 4](#4-connect-the-converter)) and read its last line. **ALL SET!** means it worked: restart the browser once and press **Re-check**. **NOT FINISHED** tells you what's still missing.
+- Check what the installer would do without changing anything: `native-host\install.bat -DryRun` (Windows) or `bash native-host/install.sh --dry-run` (macOS/Linux).
 - Linux: Snap/Flatpak browsers can't run helpers. Use the `.deb`/`.rpm` version of the browser.
 
 </details>
@@ -513,7 +528,8 @@ Opening an issue needs a free GitHub account. Please never share your PESU passw
 | `extension/src/native.js` | Chunked native-messaging client for the helper |
 | `extension/src/fx.js`, `theme.js` | Small UI effects; light / dark switch |
 | `native-host/pesu_host.py` | The helper (Python standard library only): MS Office COM on Windows, LibreOffice everywhere, PDF repair |
-| `native-host/install.*`, `uninstall.*` | Per-user registration (Windows registry, macOS/Linux manifest folders) |
+| `native-host/install.*`, `uninstall.*` | One-step setup: finds or installs Python and Office/LibreOffice (winget / Homebrew / apt…), registers the helper per user (Windows registry, macOS/Linux manifest folders) and tests it. `-DryRun` / `--dry-run` changes nothing, `-Yes` / `--yes` doesn't ask |
+| `native-host/selftest.py` | Used by the installers: asks the helper what converters it found |
 
 ```bash
 # Helper test (run the installer first): converts every Office file in a folder

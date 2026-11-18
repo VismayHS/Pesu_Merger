@@ -56,11 +56,12 @@
     <div class="banner warn hidden" id="helperBanner">
       <svg class="banner-icon" viewBox="0 0 24 24"><path d="M14 4h-4v3a2 2 0 1 1-4 0V4H4v6h3a2 2 0 1 1 0 4H4v6h6v-3a2 2 0 1 1 4 0v3h6v-6h-3a2 2 0 1 1 0-4h3V4z"/></svg>
       <div class="banner-text">
-        <strong id="helperTitle">Converter helper not installed</strong>
-        <span id="helperText">PDFs still download and merge. To turn PPT and DOC files into PDF, run <code id="helperCmd">native-host/install</code> once (see the README), then re-check.</span>
+        <strong id="helperTitle">Set up the converter</strong>
+        <span id="helperText">It's needed to turn PowerPoint and Word files into PDF.</span>
       </div>
       <div class="row">
-        <a class="btn hidden" id="btnGetLibre" href="https://www.libreoffice.org/download/" target="_blank" rel="noopener">Get LibreOffice (free)</a>
+        <a class="btn" id="btnHelperGuide" href="https://github.com/VismayHS/Pesu_Merger#4-connect-the-converter" target="_blank" rel="noopener">How to set it up</a>
+        <a class="btn hidden" id="btnGetLibre" href="https://www.libreoffice.org/download/download-libreoffice/" target="_blank" rel="noopener">Get LibreOffice (free)</a>
         <button class="btn" id="btnHelperRetry">Re-check</button>
       </div>
     </div>
@@ -180,6 +181,15 @@
         <div class="preview">
           <div class="tree" id="previewTree"><div class="muted small">Scan a course to preview the folders and files.</div></div>
           <div class="preview-foot muted small" id="previewFoot"></div>
+        </div>
+
+        <div class="convert-warn hidden" id="convertWarn" role="alert">
+          <strong id="convertWarnTitle">The converter isn't set up yet</strong>
+          <span>PowerPoint and Word files will be saved as they are and left out of the combined PDFs. PDFs and MCQs are not affected.</span>
+          <div class="row">
+            <a class="btn" id="btnConvertGuide" href="https://github.com/VismayHS/Pesu_Merger#4-connect-the-converter" target="_blank" rel="noopener">How to set it up</a>
+            <button class="btn" id="btnConvertAnyway">Start anyway</button>
+          </div>
         </div>
 
         <div class="actions">

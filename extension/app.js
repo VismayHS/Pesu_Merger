@@ -70,6 +70,8 @@ const state = {
   selectedCourses: new Set(),
   scanned: new Map(), // courseId -> { course, units, subType }
   selectedUnits: new Set(), // `${courseId}:${unitId}`
+  converter: null, // 'ok' | 'missing' (helper not set up) | 'noengine' (no Office / LibreOffice) - set by checkHelper
+  convertAccepted: false, // pressed "Start anyway" without a converter
   running: false,
   job: null,
   preselect: new URLSearchParams(location.search).get('course'),
@@ -623,35 +625,71 @@ async function onLoginContinue() {
 }
 
 // ------------------------------------------------------------------ converter helper
+const GUIDE_URL = 'https://github.com/VismayHS/Pesu_Merger';
+const SETUP_GUIDE = GUIDE_URL + '#4-connect-the-converter';
+const OFFICE_GUIDE = GUIDE_URL + '#1-install-python-and-office-or-libreoffice';
+
 async function checkHelper() {
   pill('#chipHelper', '', 'Checking converter…');
   const info = await host.ping();
   const plat = ((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '').toLowerCase();
-  if (!info) {
-    pill('#chipHelper', 'warn', 'Converter not installed');
-    const cmd = plat.includes('win') ? 'native-host\\install.bat' : 'bash native-host/install.sh';
-    $('#helperTitle').textContent = 'Converter helper not installed';
-    $('#helperText').innerHTML = 'PDFs still download and merge. To turn PPT and DOC files into PDF, run <code id="helperCmd"></code> once (see the README), then press Re-check.';
+  const cmd = plat.includes('win') ? 'native-host\\install.bat' : 'bash native-host/install.sh';
+  const showBanner = (title, html, guide, libre) => {
+    $('#helperTitle').textContent = title;
+    $('#helperText').innerHTML = html;
     $('#helperCmd').textContent = cmd;
-    $('#btnGetLibre').classList.add('hidden');
+    $('#btnHelperGuide').href = guide;
+    $('#btnGetLibre').classList.toggle('hidden', !libre);
     $('#helperBanner').classList.remove('hidden');
+  };
+  if (!info) {
+    state.converter = 'missing';
+    pill('#chipHelper', 'warn', 'Converter not set up');
+    showBanner('Set up the converter: it\'s needed for PowerPoint and Word files',
+      'Most courses have PPT and DOCX files. Run <code id="helperCmd"></code> once from the project folder (it installs anything missing), then press Re-check.',
+      SETUP_GUIDE, false);
+    syncConvertWarn();
     return;
   }
-  $('#helperBanner').classList.add('hidden');
   const o = info.office || {};
   const engines = [];
   if (o.powerpoint || o.word) engines.push('MS Office');
   if (info.libreoffice) engines.push('LibreOffice');
   pill('#chipHelper', engines.length ? 'ok' : 'warn', engines.length ? 'Converter: ' + engines.join(' + ') : 'No Office / LibreOffice');
-  if (!engines.length) {
-    log('warn', 'Converter helper is installed but neither MS Office nor LibreOffice was found — PPT/DOC files will be kept as originals.');
-    const how = plat.includes('mac') ? ' On a Mac you can also run <code>brew install --cask libreoffice</code>.'
-      : plat.includes('linux') ? ' On Linux: <code>sudo apt install libreoffice</code> (or your distro\'s package).' : '';
-    $('#helperTitle').textContent = 'Install LibreOffice to convert PPT and DOC files';
-    $('#helperText').innerHTML = 'The helper is ready, but it needs Microsoft Office or the free LibreOffice to do the converting. Until then, PDFs still download and merge, and PPT/DOC files are saved as they are.' + how + ' After installing, press Re-check (no need to run the installer again).';
-    $('#btnGetLibre').classList.remove('hidden');
-    $('#helperBanner').classList.remove('hidden');
+  if (engines.length) {
+    state.converter = 'ok';
+    $('#helperBanner').classList.add('hidden');
+  } else {
+    state.converter = 'noengine';
+    log('warn', 'The converter is set up but neither MS Office nor LibreOffice was found — PPT/DOC files will be kept as originals.');
+    const why = plat.includes('mac') ? 'The converter is set up, but on a Mac it needs LibreOffice (free) to do the converting.'
+      : 'The converter is set up, but it can\'t find Microsoft Office or LibreOffice (free).';
+    showBanner('Install LibreOffice: it\'s needed for PowerPoint and Word files',
+      why + ' Run <code id="helperCmd"></code> again and it installs LibreOffice for you, or use the button. Then press Re-check.',
+      OFFICE_GUIDE, true);
   }
+  syncConvertWarn();
+}
+
+// MCQs and References never need converting; every other category often has PPT / DOC files.
+const NO_CONVERT_CATS = new Set([8, 9]);
+const needsConverter = (plan) => plan.cats.some((t) => !NO_CONVERT_CATS.has(t));
+function syncConvertWarn() {
+  if (state.converter === 'ok' || !needsConverter(selectedPlan())) $('#convertWarn').classList.add('hidden');
+}
+// Before a download: if the converter isn't ready, say so above the Start button and let the
+// user set it up first or start anyway. Returns true when the download may go ahead.
+async function converterGate(plan) {
+  if (state.convertAccepted || !needsConverter(plan)) return true;
+  if (state.converter !== 'ok') await checkHelper(); // maybe it was set up a moment ago
+  if (state.converter === 'ok') return true;
+  $('#convertWarnTitle').textContent = state.converter === 'missing'
+    ? 'The converter isn\'t set up yet' : 'Microsoft Office or LibreOffice is missing';
+  $('#btnConvertGuide').href = state.converter === 'missing' ? SETUP_GUIDE : OFFICE_GUIDE;
+  const w = $('#convertWarn');
+  w.classList.remove('hidden');
+  w.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  return false;
 }
 
 // ------------------------------------------------------------------ semesters / courses
@@ -902,6 +940,7 @@ function updatePlan() {
   const p = selectedPlan();
   const el = $('#planSummary');
   renderPreview(p);
+  syncConvertWarn();
   if (!p.courses.length || !p.cats.length) {
     el.textContent = !state.scanned.size ? 'Scan a course first.' : !p.cats.length ? 'Pick at least one category.' : 'Pick at least one unit.';
     $('#btnStart').disabled = true;
@@ -1218,6 +1257,12 @@ async function startJob() {
   if (state.running) return;
   const plan = selectedPlan();
   if (!plan.courses.length || !plan.cats.length) return;
+  if (state.starting) return; // the converter check below takes a moment: ignore a double click
+  state.starting = true;
+  let go;
+  try { go = await converterGate(plan); } finally { state.starting = false; }
+  if (!go || state.running) return;
+  $('#convertWarn').classList.add('hidden');
   state.settings.rootFolder = U.safeName($('#optRoot').value || DEFAULTS.rootFolder, 40);
   saveSettings();
   problems = 0;
@@ -1727,6 +1772,11 @@ function wire() {
   });
   $('#btnNoUnits').addEventListener('click', () => { state.selectedUnits.clear(); renderUnits(); });
   $('#btnStart').addEventListener('click', startJob);
+  $('#btnConvertAnyway').addEventListener('click', () => {
+    state.convertAccepted = true;
+    $('#convertWarn').classList.add('hidden');
+    startJob();
+  });
   $('#btnCancel').addEventListener('click', () => {
     if (!state.job || !state.running || state.job.cancel) return;
     state.job.cancel = true;
