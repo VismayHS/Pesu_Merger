@@ -1,173 +1,400 @@
-# PESU Academy Downloader
+<div align="center">
 
-A browser extension for **[pesuacademy.com](https://www.pesuacademy.com)**. It downloads your course material unit by unit and converts PPT/PPTX/DOC/DOCX (and other formats) to PDF. It then merges everything into clean, bookmarked PDFs and exports the MCQs with their answers.
+<img src="extension/icons/icon128.png" width="84" alt="PESU Downloader icon">
 
-Made by **Vismay H S**.
+# PESU Downloader
 
-It works in **Chrome, Brave, Edge, Chromium, Vivaldi and Arc** on **Windows, macOS and Linux**. It only runs on pesuacademy.com and touches no other site.
+**Your whole semester from [PESU Academy](https://www.pesuacademy.com), neatly in one folder.**
+
+Download slides, notes, question banks and MCQs unit by unit. Convert everything to PDF, combine it into bookmarked PDFs and get the MCQs with their answers. One click.
+
+Made by **Vismay H S**
+
+[![Star this repo](https://img.shields.io/github/stars/VismayHS/Pesu_Merger?style=for-the-badge&logo=github&label=Star%20this%20repo&color=111111)](https://github.com/VismayHS/Pesu_Merger/stargazers)
+&nbsp;
+![Browsers](https://img.shields.io/badge/Chrome%20·%20Brave%20·%20Edge%20·%20Arc%20·%20Vivaldi-111111?style=for-the-badge)
+&nbsp;
+![OS](https://img.shields.io/badge/Windows%20·%20macOS%20·%20Linux-111111?style=for-the-badge)
+
+</div>
+
+> [!TIP]
+> **Did this save you time? Please ⭐ star the repository** ([click here](https://github.com/VismayHS/Pesu_Merger), then press **Star** at the top right). It's free, takes one second, and helps other PES students find the tool.
+
+<p align="center">
+  <img src="docs/images/overview.png" alt="PESU Downloader: pick courses on the left, see exactly what will be saved on the right" width="100%">
+</p>
 
 ---
 
-## Quick start (about 5 minutes)
+## Contents
 
-### 1. Get the code
+- [What you get](#what-you-get)
+- [Install (5 minutes)](#install-5-minutes)
+  - [1. Download the code](#1-download-the-code)
+  - [2. Add the extension to your browser](#2-add-the-extension-to-your-browser)
+  - [3. Install the converter helper (for PPT and DOC files)](#3-install-the-converter-helper-for-ppt-and-doc-files)
+- [How to use it](#how-to-use-it)
+- [Rename anything](#rename-anything)
+- [While it runs](#while-it-runs)
+- [What the PDFs look like](#what-the-pdfs-look-like)
+- [MCQs](#mcqs)
+- [Options explained](#options-explained)
+- [How it works](#how-it-works)
+- [Privacy and permissions](#privacy-and-permissions)
+- [Troubleshooting](#troubleshooting)
+- [For developers](#for-developers)
+- [Credits](#credits)
+
+---
+
+## What you get
+
+A tidy folder in your **Downloads**, with one folder per course and one folder per unit:
+
+```text
+Downloads/
+└── PESU Academy/
+    └── UE24AM343AB3 - Big Data Systems and Responsible AI Engineering/
+        ├── Unit1_Content/
+        │   ├── Unit 1 - Slides.pdf            ← all of Unit 1's slides, in class order
+        │   ├── Unit 1 - Notes.pdf
+        │   ├── Unit 1 - Question Bank.pdf
+        │   ├── MCQs/
+        │   │   ├── Unit 1 - MCQs.pdf          ← questions with the answers marked
+        │   │   ├── Unit 1 - MCQs.html         ← interactive practice page
+        │   │   └── Unit 1 - MCQs.md
+        │   └── Files/                         ← only if you ask for separate files
+        │       └── Slides/01 - Introduction to big data.pdf
+        ├── Unit2_Content/
+        │   └── …
+        └── _Report.txt                        ← what was saved, and anything that failed
+```
+
+- **Any file type.** PDF, PPTX, PPT, DOCX, DOC, XLSX, ODP, ODT, RTF, images and text all become PDF.
+- **Combined PDFs** have a cover page, a clickable list of topics and bookmarks.
+- **MCQs come with answers**, as a PDF, an interactive practice page, Markdown or JSON.
+- **No duplicates.** A file attached to several classes is saved once (checked by content, not by name).
+- **It doesn't give up.** If your session expires, the internet drops or PESU is slow, it waits and carries on by itself.
+- **Light and dark mode**, with a toggle in the top-right corner.
+- It runs **only on pesuacademy.com** and sends nothing anywhere else.
+
+---
+
+## Install (5 minutes)
+
+You need a Chromium-based browser: **Chrome, Brave, Edge, Chromium, Vivaldi or Arc**, on **Windows, macOS or Linux**.
+
+### 1. Download the code
+
+**Option A (easiest):** on this page click the green **Code** button, then **Download ZIP**, and unzip it.
+
+**Option B (with git):**
 
 ```bash
 git clone https://github.com/VismayHS/Pesu_Merger.git
 ```
 
-You can also use **Code → Download ZIP** on GitHub and unzip it. Keep the folder somewhere permanent, such as Documents rather than Downloads: the browser loads the extension from this folder.
+> [!IMPORTANT]
+> Keep the folder somewhere permanent, such as **Documents**. The browser loads the extension from this folder, so it stops working if you delete or move the folder.
 
-### 2. Load the extension (all OSes)
+### 2. Add the extension to your browser
 
-1. Open your browser's extensions page:
-   - `chrome://extensions`
-   - `brave://extensions`
-   - `edge://extensions`
-2. Turn on **Developer mode** (a toggle in the top-right; in Edge it's in the left sidebar).
-3. Click **Load unpacked** and select the **`extension`** folder inside the project. Select that folder itself, not the project root.
-4. Pin the extension with the puzzle-piece icon, so it's one click away.
+1. Open the extensions page. Type one of these into the address bar:
 
-The extension ID is always `cooigkfjkkbolfcfcdmbmdjpmbmlofab`, because a fixed key in `manifest.json` sets it. The converter helper relies on that.
+   | Browser | Address |
+   |---|---|
+   | Chrome / Chromium / Arc | `chrome://extensions` |
+   | Brave | `brave://extensions` |
+   | Edge | `edge://extensions` |
+   | Vivaldi | `vivaldi://extensions` |
 
-### 3. Install the converter helper (needed only for PPT/DOC → PDF)
+2. Turn on **Developer mode**. It's a switch in the top-right corner; in Edge it's in the left sidebar.
+3. Click **Load unpacked**.
+4. Select the **`extension`** folder inside the project. Choose that folder itself, not the outer `Pesu_Merger` folder.
+5. Click the puzzle-piece icon in the toolbar and **pin** PESU Downloader so it's always one click away.
 
-PDF material downloads and merges without this step. The helper is a small local program that converts Office files to PDF. It runs only on your machine and needs no admin rights.
+That's it for PDF material. To also convert PPT and DOC files, do step 3.
 
-| OS | Requirements | Run |
-|---|---|---|
-| **Windows** | [Python 3](https://www.python.org/downloads/), with "Add to PATH" ticked during setup, plus **MS Office** (best) or **[LibreOffice](https://www.libreoffice.org/download/)** (free) | Double-click `native-host\install.bat` |
-| **macOS** | Python 3 (`brew install python`) and LibreOffice (`brew install --cask libreoffice`) | `bash native-host/install.sh` |
-| **Linux** | `python3` and LibreOffice (`sudo apt install python3 libreoffice`) | `bash native-host/install.sh` |
+### 3. Install the converter helper (for PPT and DOC files)
 
-The installer:
+Browsers can't turn PowerPoint or Word files into PDF themselves. A small helper program on your computer does it, using Microsoft Office or the free LibreOffice. It needs no admin rights and works offline.
 
-- finds Python and registers the helper for every supported browser it finds;
-- runs a self-test and tells you which converters it found.
+<details open>
+<summary><b>🪟 Windows</b></summary>
 
-After it finishes, press **Re-check** on the extension page, or restart the browser once. The top-right pill should read **Converter: MS Office** or **LibreOffice**.
+1. Install **[Python 3](https://www.python.org/downloads/)**. During setup, tick **"Add python.exe to PATH"**.
+2. Make sure you have **Microsoft Office** (best results) or **[LibreOffice](https://www.libreoffice.org/download/)** (free).
+3. Open the project folder, go into `native-host` and **double-click `install.bat`**.
 
-> Moved the folder? Run the installer again. To remove the helper, run `native-host\uninstall.bat` on Windows or `bash native-host/uninstall.sh` on macOS/Linux.
+</details>
 
-### 4. Use it
+<details>
+<summary><b>🍎 macOS</b></summary>
 
-1. Log in to pesuacademy.com in the same browser.
-2. Click the extension icon, or the **⬇ PESU Downloader** button on PESU pages.
-3. **Pick courses:** choose a semester, tick courses and press **Scan courses**.
-4. **Choose content:**
-   - toggle categories: Slides, Notes, Assignments, Question Bank, Question Answers, FAQs, MCQs, References;
-   - untick units you don't need.
-5. **Shape the output:** pick how files are combined. The **What you'll get** panel shows the exact folders and file names before you start.
-6. Press **Start**. Leave the tab open until it finishes, then press **Open folder**.
+```bash
+brew install python
+brew install --cask libreoffice
+bash native-host/install.sh
+```
+
+No Homebrew? Install Python from [python.org](https://www.python.org/downloads/) and LibreOffice from [libreoffice.org](https://www.libreoffice.org/download/). Make sure LibreOffice ends up in `/Applications`.
+
+</details>
+
+<details>
+<summary><b>🐧 Linux</b></summary>
+
+```bash
+sudo apt install python3 libreoffice      # Fedora: sudo dnf install python3 libreoffice
+bash native-host/install.sh
+```
+
+A **Snap or Flatpak** browser can't start local helpers. Use the `.deb`/`.rpm` build of Chrome, Brave or Edge.
+
+</details>
+
+The installer finds Python, registers the helper with every supported browser on your computer, runs a self-test and tells you which converter it found.
+
+Then open the extension and press **Re-check** (or restart the browser once). The top-right corner should say **Converter: MS Office** or **Converter: LibreOffice**.
+
+> Moved the project folder? Run the installer again. To remove the helper, run `native-host\uninstall.bat` (Windows) or `bash native-host/uninstall.sh` (macOS/Linux).
 
 ---
 
-## Features
+## How to use it
 
-- **Any file mix.** PDF, PPTX, PPT, DOCX, DOC, XLSX, ODP/ODT, RTF, images and text all end up as PDF.
-- **Merge styles:**
-  - per unit and category (`Unit 1 - Slides.pdf`)
-  - per category (`Slides - Units 1-4.pdf`)
-  - per unit
-  - one PDF for everything
-  - no merging
-- **Merged PDFs** start with a cover page:
-  - what it contains and where it came from;
-  - a clickable list of every topic with page numbers;
-  - nested bookmarks (Unit → Category → Class).
-- **MCQs** are exported with the correct answers, images and equations, as:
-  - PDF (answers marked, as a key at the end, or hidden)
-  - an interactive practice page (`.html`)
-  - Markdown and JSON
-- **Pick a naming style.** Under **Rename files** in the right-hand panel, next to the live folder preview, choose how course folders, merged PDFs and separate files are named. Each option shows the real name you'll get. Folders are organised automatically, with one `UnitN_Content` folder per unit.
-- **No duplicates.**
-  - Material shared across a whole unit is downloaded once.
-  - Identical files uploaded under different classes are detected by content (SHA-256) and kept once.
-- **Activity tab** with the full log, a problems filter, search, and copy / save.
-- **Keeps going on its own:**
-  - **Session expired, logged out, or logged in elsewhere?** The run pauses with a banner. Log in again in any PESU tab and it **resumes automatically**, with no restart.
-  - **PESU tab closed?** A background PESU tab is reopened when needed.
-  - **Internet dropped?** It waits until you're back online, then continues.
-  - **Server busy (5xx/429)?** It retries with backoff, using three download routes: direct, through the PESU tab, then the browser's own downloader.
-  - **Encrypted or damaged PDFs** are repaired before merging.
-  - Anything that still fails is saved on its own and listed in `_Report.txt`.
+1. **Log in** to [pesuacademy.com](https://www.pesuacademy.com) in the same browser.
+2. **Open the extension:** click its icon, or the **⬇ PESU Downloader** button that appears on PESU pages.
+3. **Courses:** pick a semester, tick the courses you want and press **Scan courses**.
+4. **Content:** pick the categories (Slides, Notes, Assignments, Question Bank, Question Answers, FAQs, MCQs, References), then untick any units you don't need. The table shows how many files each unit has.
 
-Output (default names):
+   <img src="docs/images/content.png" alt="Choosing categories and units" width="100%">
 
+5. **Output:** choose how files are combined, plus a few extras ([explained below](#options-explained)).
+
+   <img src="docs/images/output.png" alt="Output options" width="100%">
+
+6. Check the **Your download** panel on the right. It shows exactly which folders and files you'll get.
+7. Press **Start**. Keep the tab open until it says **All done**, then press **Open folder**.
+
+---
+
+## Rename anything
+
+Don't like a name? **Click it in the "Your download" panel and type a new one.**
+
+<p align="center"><img src="docs/images/rename.png" alt="Renaming a file straight in the preview" width="440"></p>
+
+- **Enter** saves, **Esc** cancels, and an empty name brings back the automatic one.
+- Under the name field there are **styles that apply to every item of that kind**, for example `UE24AM343AB3 - Unit 1 - Slides.pdf` for all combined PDFs.
+- Renamed items show a **↺** button that puts the automatic name back. **Reset names** at the bottom resets everything.
+- You can rename the main folder, course folders, unit folders (`Unit1_Content`), combined PDFs and MCQ files. Separate files are named after their class, and you pick a style for them.
+- Names are **locked once you press Start**, so the download stays consistent. Press **Cancel** if you want to change something.
+
+---
+
+## While it runs
+
+<p align="center">
+  <img src="docs/images/running.png" alt="Progress while downloading (dark mode)" width="400">
+  &nbsp;&nbsp;
+  <img src="docs/images/finished.png" alt="Finished, with the list of saved PDFs" width="400">
+</p>
+
+- The steps on the left show where it is: reading the portal, downloading and converting, MCQs, combining.
+- **Cancel** stops cleanly. Files that are half-way finish first, and everything saved so far is kept.
+- **Your session expired?** A banner asks you to log in again. Log in on any PESU tab and the download **continues by itself** from where it stopped.
+- **Internet dropped?** It waits until you're back online.
+- **PESU slow or busy?** It retries, and has two backup ways to download a file.
+- The **Activity** tab has the full log, with a "Problems" filter, search, copy and save:
+
+<p align="center"><img src="docs/images/activity.png" alt="Activity log" width="100%"></p>
+
+---
+
+## What the PDFs look like
+
+Every combined PDF starts with a cover page. It says where the material came from and lists every topic with its page number. **Click a topic to jump to it.** The same list is in the PDF's bookmarks sidebar.
+
+<p align="center">
+  <img src="docs/images/pdf-cover.png" alt="Cover and contents page of a combined PDF" width="470">
+</p>
+
+## MCQs
+
+MCQs are saved per unit, in that unit's `MCQs` folder, with the correct answers taken from the portal.
+
+| PDF (answers marked) | Practice page (click an answer to check it) |
+|---|---|
+| <img src="docs/images/pdf-mcq.png" alt="MCQ PDF with correct answers marked" width="100%"> | <img src="docs/images/mcq-practice.png" alt="Interactive MCQ practice page" width="100%"> |
+
+- **Answers** can be marked next to each question, listed as a key at the end, both, or hidden (good for revision).
+- The **practice page** opens in any browser. It keeps your score, and has **Shuffle**, **Reset** and **Show all answers** buttons.
+- Images and equations inside questions are kept.
+
+---
+
+## Options explained
+
+| Option | What it does |
+|---|---|
+| **Per unit and category** *(default)* | One PDF per category in each unit: `Unit 1 - Slides.pdf`, `Unit 1 - Notes.pdf`… |
+| **Per category** | One PDF per category across all units: `Slides - Units 1-4.pdf` |
+| **Per unit** | Everything for a unit in one PDF: `Unit 1 - Complete.pdf` |
+| **One single PDF** | All selected material in one file |
+| **Don't merge** | Just the individual files, each converted to PDF |
+| **Cover and contents page** | The clickable topic list at the start of every combined PDF |
+| **Divider before each document** | A title page before each document, naming its class |
+| **Keep separate files too** | Also saves every document as its own PDF in `UnitN_Content/Files/<Category>/` |
+| **Keep original PPT / DOC** | Also keeps the original Office files next to the PDFs |
+| **MCQ answers** | Marked / key at end / both / hidden |
+| **MCQ formats** | PDF, practice page (HTML), Markdown, JSON |
+| **Folder inside Downloads** | The main folder name (default `PESU Academy`) |
+| **Converter** | Automatic (MS Office, then LibreOffice), or force one of them |
+
+If an option doesn't apply to your choice, it's greyed out. For example, the cover page does nothing when files aren't combined. The panel on the right always shows the real result.
+
+<details>
+<summary><b>Prefer the dark theme?</b></summary>
+
+The page follows your system's light/dark setting. Use the ☀/☾ button in the top-right corner to switch, and it will remember your choice.
+
+<img src="docs/images/overview-dark.png" alt="Dark mode" width="100%">
+
+</details>
+
+---
+
+## How it works
+
+```mermaid
+flowchart LR
+    A[You pick courses,<br/>units and categories] --> B[Read the course pages<br/>on pesuacademy.com]
+    B --> C[Download every file<br/>with your login]
+    C --> D{Already a PDF?}
+    D -- yes --> F[Skip duplicates<br/>by content]
+    D -- no --> E[Converter helper<br/>MS Office / LibreOffice]
+    E --> F
+    F --> G[Combine into PDFs<br/>+ cover & bookmarks]
+    B --> H[Extract MCQs<br/>+ answers]
+    G --> I[(Downloads/PESU Academy)]
+    H --> I
 ```
-Downloads/PESU Academy/
-  UE24AM342AA5 - ML System Design and AgentOps/
-    Unit1_Content/
-      Unit 1 - Slides.pdf
-      Unit 1 - Notes.pdf
-      Unit 1 - Question Bank.pdf
-      MCQs/Unit 1 - MCQs.pdf | .html | .md
-      Files/Slides/01 - Introduction ....pdf   (only if "keep every file separately" is on)
-    Unit2_Content/
-      ...
-    _Report.txt
-```
+
+Everything happens inside your browser and on your own computer. The extension uses your existing PESU login, exactly like you clicking each file by hand, only faster and organised.
+
+---
 
 ## Privacy and permissions
 
-Everything runs locally in your browser. The extension talks only to `pesuacademy.com` and its file server `files.pesuacademy.com`, using your existing login. Nothing is sent anywhere else.
+The extension talks **only** to `pesuacademy.com` and its file server `files.pesuacademy.com`. No analytics, no servers, and your password is never touched.
 
-| Permission | Why |
+| Permission | Why it's needed |
 |---|---|
 | `pesuacademy.com`, `files.pesuacademy.com` | Read course pages and download files with your login |
 | `downloads`, `downloads.ui` | Save files into Downloads (the download bubble is hidden during a run) |
-| `scripting`, `webRequest` | Fallback route: fetch through your open PESU tab when direct requests are blocked |
-| `nativeMessaging` | Talk to the optional local converter helper |
-| `storage`, `unlimitedStorage` | Remember your settings, and handle large files in memory |
+| `scripting`, `webRequest` | Backup route: fetch through your open PESU tab if direct requests are blocked |
+| `nativeMessaging` | Talk to the optional converter helper on your computer |
+| `storage`, `unlimitedStorage` | Remember your settings and handle large files |
+
+---
 
 ## Troubleshooting
 
-- **"Converter not installed"**
-  - Run the installer for your OS (step 3), then press **Re-check**. If the browser was already open, restart it once.
-  - On Linux, a **Snap or Flatpak** browser can't start local helpers. Use the `.deb`/`.rpm` build of Chrome or Brave instead.
-- **"Not logged in"**: log in at pesuacademy.com in the same browser profile. The page notices by itself.
-- **A PPT failed with Office**: the helper retries with LibreOffice automatically. The original file is kept if both fail.
-- **Windows: "Python was not found"**: install Python from python.org; the Microsoft Store stub doesn't work. Then run `install.bat` again.
-- **macOS: LibreOffice is installed but not detected**: it must be at `/Applications/LibreOffice.app`. Run `install.sh` again.
-- **Helper log:**
-  - Windows: `%LOCALAPPDATA%\PESUDownloader\host.log`
-  - macOS: `~/Library/Application Support/PESUDownloader/host.log`
-  - Linux: `~/.cache/pesu-downloader/host.log`
+<details>
+<summary><b>"Converter not installed"</b></summary>
 
-## Project layout
+- Run the installer for your system ([step 3](#3-install-the-converter-helper-for-ppt-and-doc-files)), then press **Re-check**. If the browser was already open, restart it once.
+- Linux: Snap/Flatpak browsers can't run helpers. Use the `.deb`/`.rpm` version of the browser.
+
+</details>
+
+<details>
+<summary><b>Windows: "Python was not found"</b></summary>
+
+Install Python from [python.org](https://www.python.org/downloads/) with **Add to PATH** ticked. The Microsoft Store shortcut doesn't work. Then run `install.bat` again.
+
+</details>
+
+<details>
+<summary><b>"Log in to PESU Academy"</b> keeps showing</summary>
+
+Log in at pesuacademy.com **in the same browser and profile**. The extension notices by itself within a few seconds. You can also press **Continue**.
+
+</details>
+
+<details>
+<summary><b>A PowerPoint file failed to convert</b></summary>
+
+The helper tries MS Office first, then LibreOffice. If both fail, the original file is saved instead and listed in `_Report.txt`.
+
+</details>
+
+<details>
+<summary><b>macOS: LibreOffice is installed but not found</b></summary>
+
+It must be in `/Applications/LibreOffice.app`. Move it there and run `install.sh` again.
+
+</details>
+
+<details>
+<summary><b>Where is the helper's log?</b></summary>
+
+- Windows: `%LOCALAPPDATA%\PESUDownloader\host.log`
+- macOS: `~/Library/Application Support/PESUDownloader/host.log`
+- Linux: `~/.cache/pesu-downloader/host.log`
+
+</details>
+
+<details>
+<summary><b>How do I update to a new version?</b></summary>
+
+Download the new code (or `git pull`), then press the **reload ↻** button on the extension's card in `chrome://extensions`. Run the helper installer again only if you moved the folder.
+
+</details>
+
+Still stuck? [Open an issue](https://github.com/VismayHS/Pesu_Merger/issues) with what you did and a screenshot of the **Activity** tab.
+
+---
+
+## For developers
 
 | Path | Role |
 |---|---|
-| `extension/app.html`, `app.css`, `app.js` | The downloader page: UI, naming, preview, the job pipeline, dedupe and the session watchdog |
-| `extension/src/pesu.js` | Portal endpoints and HTML parsers: semesters, courses, units, class table, content lists, MCQs |
-| `extension/src/net.js` | Page and file fetching, with session detection, retries and fallback routes |
-| `extension/src/pdf.js` | Merging with pdf-lib: cover and contents page, bookmarks, image/text → PDF, MCQ PDF layout |
-| `extension/src/mcq.js` | MCQ HTML → PDF layout (equations rasterised), HTML/Markdown/JSON exports |
+| `extension/app.html`, `app.css`, `app.js` | The downloader page: UI, naming and inline rename, preview, job pipeline, dedupe, session watchdog |
+| `extension/src/pesu.js` | Portal endpoints and HTML parsers (semesters, courses, units, classes, content, MCQs) |
+| `extension/src/net.js` | Page and file fetching with session detection, retries and fallback routes |
+| `extension/src/pdf.js` | Merging with pdf-lib: cover and contents page, bookmarks, image/text → PDF, MCQ PDF |
+| `extension/src/mcq.js` | MCQ layout and the HTML / Markdown / JSON exports |
 | `extension/src/native.js` | Chunked native-messaging client for the helper |
-| `native-host/pesu_host.py` | Helper, Python standard library only: MS Office COM (Windows), LibreOffice (all OSes), PDF repair |
-| `native-host/install.*` / `uninstall.*` | Per-user registration (Windows registry, or macOS/Linux manifest folders) |
-
-## Development and tests
+| `extension/src/fx.js`, `theme.js` | Small UI effects; light / dark switch |
+| `native-host/pesu_host.py` | The helper (Python standard library only): MS Office COM on Windows, LibreOffice everywhere, PDF repair |
+| `native-host/install.*`, `uninstall.*` | Per-user registration (Windows registry, macOS/Linux manifest folders) |
 
 ```bash
-# Helper protocol test (run the installer first). Converts every office file in a folder.
+# Helper test (run the installer first): converts every Office file in a folder
 node tests/host_test.js <folder with office files>
 
-# PDF engine test (merge, cover page, MCQ layout)
+# PDF engine test: merge, cover page, MCQ layout
 npm install --no-save pdf-lib@1.17.1 @pdf-lib/fontkit@1.1.1
 node tests/pdf_test.js <folder with PDFs + tiny.png> <out folder>
 ```
 
-After editing files under `extension/`, press **Reload** on the extension card.
+After editing anything in `extension/`, press **Reload** on the extension card. The extension ID is always `cooigkfjkkbolfcfcdmbmdjpmbmlofab` (fixed by the key in `manifest.json`), which the helper relies on.
+
+---
 
 ## Credits
 
 Built by **Vismay H S**.
 
-Third-party code bundled in `extension/lib` and `extension/fonts`:
+Bundled third-party code: [pdf-lib](https://github.com/Hopding/pdf-lib) (MIT), [@pdf-lib/fontkit](https://github.com/Hopding/fontkit) (MIT) and the DejaVu fonts (free license, see `extension/fonts/LICENSE-DejaVu.txt`).
 
-- [pdf-lib](https://github.com/Hopding/pdf-lib) (MIT)
-- [@pdf-lib/fontkit](https://github.com/Hopding/fontkit) (MIT)
-- DejaVu fonts (free license, see `extension/fonts/LICENSE-DejaVu.txt`)
+This is an unofficial student tool, not affiliated with PES University. Use it only for material your account has access to.
 
-This is an unofficial student tool, not affiliated with PES University. Use it only for material you have access to.
+<div align="center">
+
+**If PESU Downloader helped you, please [⭐ star the repo](https://github.com/VismayHS/Pesu_Merger) and share it with your classmates!**
+
+</div>

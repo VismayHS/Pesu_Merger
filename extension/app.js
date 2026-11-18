@@ -25,26 +25,18 @@ const ICON = {
 const svg = (k) => `<svg viewBox="0 0 24 24">${ICON[k] || ICON.file}</svg>`;
 
 // ------------------------------------------------------------------ settings
-const NAMING_DEFAULTS = {
-  course: '{code} - {course}',
-  'merged:unit-category': 'Unit{unit}_Content/Unit {unit} - {category}',
-  'merged:category': '{category} - {units}',
-  'merged:unit': 'Unit{unit}_Content/Unit {unit} - Complete',
-  'merged:all': '{code} - Complete ({units})',
-  file: 'Unit{unit}_Content/Files/{category}/{class_no} - {name}',
-  mcq: 'Unit{unit}_Content/MCQs/Unit {unit} - MCQs',
-};
-// Friendly naming choices (no templates shown to the user). Folders are always automatic.
+// Names are automatic. Users rename things by clicking them in the preview: either one item
+// (stored in settings.renames) or a style for all items of that kind (settings.naming).
+// Layout: <root>/<Course>/<UnitN_Content>/{merged PDFs, MCQs/, Files/<Category>/}
 const NAME_STYLES = {
   course: [['codeName', '{code} - {course}'], ['name', '{course}'], ['code', '{code}'], ['nameCode', '{course} ({code})']],
+  unit: [['content', 'Unit{unit}_Content'], ['spaced', 'Unit {unit}'], ['named', 'Unit {unit} - {unit_name}']],
   merged: [['short', ''], ['code', '{code} - '], ['course', '{course} - ']], // prefix before the base name
   file: [['numbered', '{class_no} - {name}'], ['plain', '{name}'], ['unit', 'Unit {unit} - {class_no} - {name}']],
 };
-const NAMING_CHOICE_DEFAULTS = { course: 'codeName', merged: 'short', file: 'numbered' };
+const NAMING_CHOICE_DEFAULTS = { course: 'codeName', unit: 'content', merged: 'short', file: 'numbered' };
 const MERGED_BASE = { 'unit-category': 'Unit {unit} - {category}', category: '{category} - {units}', unit: 'Unit {unit} - Complete', all: 'Complete ({units})' };
-// Everything that belongs to one unit goes into <Course>/Unit<N>_Content/
-const UNIT_DIR = 'Unit{unit}_Content/';
-const FILE_DIR = UNIT_DIR + 'Files/{category}/';
+const MCQ_NAME = 'Unit {unit} - MCQs';
 const UNIT_SCOPED = new Set(['unit-category', 'unit']); // merge modes that produce one file per unit
 const styleTpl = (kind, id) => (NAME_STYLES[kind].find((x) => x[0] === id) || NAME_STYLES[kind][0])[1];
 const MODES = [
@@ -68,6 +60,7 @@ const DEFAULTS = {
   engine: 'auto',
   semesterId: null,
   naming: { ...NAMING_CHOICE_DEFAULTS },
+  renames: {},
 };
 
 const state = {
@@ -149,7 +142,7 @@ function pill(id, cls, text) {
 function setRunning(on) {
   state.running = on;
   document.body.classList.toggle('running', on);
-  if (on) $('#namingBox').open = false; // keep the progress in view; names are locked anyway
+  closeRename();
   $('#btnStart').disabled = on || !planReady();
   $('#btnStart').classList.toggle('loading', on);
   $('#btnStart span').textContent = on ? 'Working…' : 'Start';
@@ -157,8 +150,10 @@ function setRunning(on) {
   $('#btnCancel').textContent = 'Cancel';
   $('#btnScan').disabled = on || !state.selectedCourses.size;
   $('#semester').disabled = on;
-  $$('#stepOptions input, #stepOptions select, #stepOptions .seg button, #namingBox .nopt, #btnResetNames, #btnAllUnits, #btnNoUnits').forEach((e) => (e.disabled = on));
+  $$('#stepOptions input, #stepOptions select, #stepOptions .seg button, #btnAllUnits, #btnNoUnits').forEach((e) => (e.disabled = on));
   $$('#courseList input, #unitTables input, #cats input').forEach((e) => (e.disabled = on));
+  if (!on) syncExtras();
+  renderPreview(selectedPlan()); // show / hide the rename affordances
 }
 
 // ------------------------------------------------------------------ settings
@@ -170,9 +165,15 @@ async function loadSettings() {
         ...structuredClone(DEFAULTS), ...settings,
         mcqFormats: { ...DEFAULTS.mcqFormats, ...(settings.mcqFormats || {}) },
         naming: cleanNaming(settings.naming),
+        renames: cleanRenames(settings.renames),
       };
     }
   } catch (_) { /* defaults */ }
+}
+function cleanRenames(r) {
+  const out = {};
+  if (r && typeof r === 'object') for (const [k, v] of Object.entries(r)) if (typeof v === 'string' && v.trim()) out[k] = v;
+  return out;
 }
 /** Keep only valid choices (older versions stored raw templates). */
 function cleanNaming(n) {
@@ -218,23 +219,54 @@ function nameVars({ course, unit, units, type, cls, title }) {
     title: title || '', name: smart, date: today(),
   };
 }
-/** Fill a template into a safe relative path (segments sanitised). */
-function fillPath(tpl, vars, fallback) {
-  const raw = String(tpl || '').replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
-  const segs = raw.replace(/\\/g, '/').split('/').map((s) => s.trim()).filter((s) => s && s !== '.' && s !== '..');
-  if (!segs.length) return fallback ? fillPath(fallback, vars) : 'untitled';
-  return segs.map((s, i) => U.safeName(s, i === segs.length - 1 ? 90 : 60)).join('/');
+/** Fill a template into ONE safe file or folder name (a "/" in a course title never makes a sub-folder). */
+function fillName(tpl, vars, max = 90) {
+  const raw = String(tpl || '').replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : ''));
+  return fitName(raw.replace(/\s+-\s*$/, ''), max);
 }
-function tplFor(key, choices = state.settings.naming) {
-  if (key === 'course') return styleTpl('course', choices.course);
-  if (key === 'file') return FILE_DIR + styleTpl('file', choices.file);
-  if (key.startsWith('merged:')) {
-    const mode = key.slice(7);
-    if (mode === 'all' && choices.merged === 'short') return '{code} - ' + MERGED_BASE.all;
-    return (UNIT_SCOPED.has(mode) ? UNIT_DIR : '') + styleTpl('merged', choices.merged) + MERGED_BASE[mode];
-  }
-  return NAMING_DEFAULTS[key];
+/** Like U.safeName, but a name that is too long is shortened at a word boundary, never mid-word. */
+function fitName(s, max) {
+  const clean = U.safeName(s, 1000);
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max + 1);
+  const at = Math.max(cut.lastIndexOf(' '), cut.lastIndexOf('-'));
+  return U.safeName((at > max * 0.5 ? cut.slice(0, at) : cut.slice(0, max)).replace(/[\s\-–—,(]+$/, ''), max);
 }
+const NAME_MAX = { course: 70, unit: 60, merged: 90, mcq: 90, file: 90 };
+function mergedTpl(mode, style) {
+  if (mode === 'all' && style === 'short') return '{code} - ' + MERGED_BASE.all;
+  return styleTpl('merged', style) + MERGED_BASE[mode];
+}
+/** The automatic name of something (no extension). x = { course, unit, units, type, cls, title, mode } */
+function defaultName(kind, x, choices = state.settings.naming) {
+  const v = nameVars(x);
+  const tpl = { course: () => styleTpl('course', choices.course), unit: () => styleTpl('unit', choices.unit), merged: () => mergedTpl(x.mode, choices.merged), mcq: () => MCQ_NAME, file: () => styleTpl('file', choices.file) }[kind];
+  return fillName(tpl ? tpl() : '', v, NAME_MAX[kind] || 90);
+}
+/** Key under which a one-off rename is stored. Separate files only follow a style (there can be hundreds). */
+function renameKey(kind, x) {
+  if (kind === 'course') return 'course:' + x.course.id;
+  if (kind === 'unit') return `unit:${x.course.id}:${x.unit.idx}`;
+  if (kind === 'merged') return `merged:${x.course.id}:${x.mode}:${x.gk}`;
+  if (kind === 'mcq') return `mcq:${x.course.id}:${x.unit.idx}`;
+  return '';
+}
+function nameOf(kind, x) {
+  const k = renameKey(kind, x);
+  const custom = k && state.settings.renames[k];
+  return custom ? fitName(custom, NAME_MAX[kind]) : defaultName(kind, x);
+}
+const groupKey = (mode, unitIdx, type) => ({ 'unit-category': unitIdx + ':' + type, category: String(type), unit: String(unitIdx), all: 'all' }[mode]);
+// Paths relative to the course folder (shared by the preview and the download job)
+const courseDirOf = (course) => nameOf('course', { course });
+const unitDirOf = (course, unit) => nameOf('unit', { course, unit });
+function mergedPathOf(course, mode, x) {
+  const name = nameOf('merged', { ...x, course, mode, gk: groupKey(mode, x.unit ? x.unit.idx : 0, x.type) });
+  return (UNIT_SCOPED.has(mode) ? unitDirOf(course, x.unit) + '/' : '') + name;
+}
+const mcqStemOf = (course, unit) => `${unitDirOf(course, unit)}/MCQs/${nameOf('mcq', { course, unit })}`;
+const fileStemOf = (course, unit, type, cls, title) =>
+  `${unitDirOf(course, unit)}/Files/${U.safeName(typeName(type), 60)}/${nameOf('file', { course, unit, type, cls, title })}`;
 
 // ------------------------------------------------------------------ options UI
 function buildOptions() {
@@ -248,13 +280,13 @@ function buildOptions() {
     lab.innerHTML = `<input type="radio" name="mergeMode" value="${m.v}"><div class="art">${m.art.map(([w, h]) => `<i style="width:${w}px;height:${h}px"></i>`).join('')}</div><b>${esc(m.t)}</b><small>${esc(m.d)}</small>`;
     const r = lab.querySelector('input');
     r.checked = s.mergeMode === m.v;
-    r.addEventListener('change', () => { s.mergeMode = m.v; saveSettings(); renderNaming(); updatePlan(); });
+    r.addEventListener('change', () => { s.mergeMode = m.v; saveSettings(); syncExtras(); updatePlan(); });
     box.appendChild(lab);
   }
   const boolOpt = (sel, key) => {
     const el = $(sel);
     el.checked = !!s[key];
-    el.addEventListener('change', () => { s[key] = el.checked; saveSettings(); if (key === 'saveIndividual') renderNaming(); updatePlan(); });
+    el.addEventListener('change', () => { s[key] = el.checked; saveSettings(); updatePlan(); });
   };
   boolOpt('#optToc', 'toc');
   boolOpt('#optSeparators', 'separators');
@@ -277,82 +309,171 @@ function buildOptions() {
   root.addEventListener('input', () => updatePlan());
   root.addEventListener('change', () => { s.rootFolder = U.safeName(root.value || DEFAULTS.rootFolder, 40); root.value = s.rootFolder; saveSettings(); updatePlan(); });
 
-  $('#btnResetNames').addEventListener('click', () => {
-    if (state.running) return;
-    s.naming = { ...NAMING_CHOICE_DEFAULTS };
-    saveSettings();
-    renderNaming();
-    updatePlan();
-    toast('Names reset to the defaults', 'ok');
-  });
-  renderNaming();
+  syncExtras();
 }
 
-function sampleCtx() {
-  const p = selectedPlan();
-  const c = p.courses[0] || [...state.scanned.values()][0];
-  const course = c ? c.course : { code: 'UE24CS351A', title: 'Database Management System' };
-  const unit = c && c.units[0] ? c.units[0] : { idx: 1, name: 'Introduction and ER Model' };
-  const cls = unit.classes && unit.classes[0] ? unit.classes[0] : { idx: 1, title: 'Introduction to databases' };
-  const units = c ? c.units.map((u) => u.idx) : [1, 2, 3, 4];
-  return { course, unit, cls, units };
-}
-
-function renderNaming() {
+/** Extras that don't apply to the chosen combine mode are shown as such (never silently ignored). */
+function syncExtras() {
   const s = state.settings;
-  const list = $('#tplList');
-  list.innerHTML = '';
-  const mode = s.mergeMode;
-  const rows = [
-    ['course', 'Course folder', '/'],
-    ...(mode !== 'none' ? [['merged', 'Merged PDFs', '.pdf']] : []),
-    ['file', s.saveIndividual || mode === 'none' ? 'Separate files' : 'Separate files (when kept)', '.pdf'],
-  ];
-  for (const [kind, label, suffix] of rows) {
-    const row = document.createElement('div');
-    row.className = 'nrow';
-    row.innerHTML = '<div class="nlabel"></div><div class="nopts" role="radiogroup"></div>';
-    row.querySelector('.nlabel').textContent = label;
-    const opts = row.querySelector('.nopts');
-    const seen = new Set();
-    NAME_STYLES[kind].forEach(([id], i) => {
-      const choice = { ...s.naming, [kind]: id };
-      const ex = exampleFor(kind === 'merged' ? 'merged:' + mode : kind, choice);
-      if (seen.has(ex)) return; // identical result in this mode - don't offer twice
-      seen.add(ex);
+  const none = s.mergeMode === 'none';
+  const ind = $('#optIndividual');
+  ind.checked = none || !!s.saveIndividual;
+  ind.disabled = state.running || none;
+  ind.closest('.switch').classList.toggle('na', none);
+  ind.closest('.switch').querySelector('small').textContent = none ? 'Always on when files are not combined' : 'Each document as its own PDF, in a Files folder';
+  for (const id of ['#optToc', '#optSeparators']) {
+    const el = $(id);
+    el.disabled = state.running || none;
+    el.closest('.switch').classList.toggle('na', none);
+  }
+}
+
+// ------------------------------------------------------------------ inline rename (in the preview tree)
+const PEN = '<svg class="pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg>';
+const RENAME_STYLE_LABEL = { course: 'Style for every course folder', unit: 'Style for every unit folder', merged: 'Style for every combined PDF', file: 'Style for every separate file' };
+let renameOpen = null;
+
+function closeRename() {
+  if (!renameOpen) return;
+  const r = renameOpen;
+  renameOpen = null;
+  r.box.remove();
+  r.node.classList.remove('editing');
+  document.removeEventListener('pointerdown', r.outside, true);
+}
+
+/** Style choices offered under the name field (they apply to all items of that kind). */
+function renameChoices(ed) {
+  const s = state.settings;
+  if (!NAME_STYLES[ed.kind]) return [];
+  const custom = ed.key && s.renames[ed.key];
+  const seen = new Set();
+  const out = [];
+  for (const [id] of NAME_STYLES[ed.kind]) {
+    const label = defaultName(ed.kind, ed.x, { ...s.naming, [ed.kind]: id }) + (ed.ext || '');
+    if (seen.has(label)) continue;
+    seen.add(label);
+    out.push({ id, label, on: !custom && s.naming[ed.kind] === id });
+  }
+  return out.length > 1 ? out : [];
+}
+
+function applyRename(ed, raw) {
+  const s = state.settings;
+  let v = String(raw == null ? '' : raw).trim();
+  if (ed.ext && v.toLowerCase().endsWith(ed.ext.toLowerCase())) v = v.slice(0, -ed.ext.length).trim();
+  if (ed.kind === 'root') {
+    s.rootFolder = v ? U.safeName(v, 40) : DEFAULTS.rootFolder;
+    $('#optRoot').value = s.rootFolder;
+  } else if (ed.key) {
+    const clean = v ? fitName(v, NAME_MAX[ed.kind]) : '';
+    if (!clean || clean === defaultName(ed.kind, ed.x)) delete s.renames[ed.key];
+    else s.renames[ed.key] = clean;
+  }
+  saveSettings();
+  updatePlan();
+}
+
+function openRename(node) {
+  if (state.running) { toast('Names are locked while downloading', 'warn'); return; }
+  const ed = state.editables[Number(node.dataset.e)];
+  if (!ed) return;
+  if (renameOpen && renameOpen.node === node) return;
+  closeRename();
+  const box = document.createElement('div');
+  box.className = 'rename';
+  const free = ed.kind !== 'file';
+  const chips = renameChoices(ed);
+  box.innerHTML =
+    (free ? '<div class="rn-field"><input type="text" spellcheck="false" maxlength="90" aria-label="New name"><span class="rn-ext"></span></div>' : '') +
+    (chips.length ? '<div class="rn-label"></div><div class="rn-chips" role="radiogroup"></div>' : '') +
+    '<div class="rn-hint"></div>';
+  const done = () => { closeRename(); };
+  let committed = false;
+  const commit = (val) => { if (committed) return; committed = true; closeRename(); applyRename(ed, val); };
+  if (free) {
+    const inp = box.querySelector('input');
+    inp.value = ed.value;
+    box.querySelector('.rn-ext').textContent = ed.ext || '';
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); commit(inp.value); }
+      else if (e.key === 'Escape') { e.preventDefault(); committed = true; done(); node.focus(); }
+    });
+    inp.addEventListener('blur', () => setTimeout(() => { if (renameOpen && renameOpen.box === box) commit(inp.value); }, 0));
+  }
+  if (chips.length) {
+    box.querySelector('.rn-label').textContent = RENAME_STYLE_LABEL[ed.kind] || 'Suggestions';
+    const wrap = box.querySelector('.rn-chips');
+    for (const c of chips) {
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = 'nopt' + (s.naming[kind] === id ? ' on' : '');
-      b.style.setProperty('--i', i);
+      b.className = 'rn-chip' + (c.on ? ' on' : '');
       b.setAttribute('role', 'radio');
-      b.setAttribute('aria-checked', String(s.naming[kind] === id));
-      b.innerHTML = '<span class="radio"></span><span class="ex"></span>';
-      // separate files: show only the file name; the folder part is automatic
-      b.querySelector('.ex').textContent = (kind === 'course' ? ex : ex.split('/').pop()) + suffix;
-      b.title = ex + suffix;
-      b.disabled = state.running;
+      b.setAttribute('aria-checked', String(c.on));
+      b.innerHTML = '<span></span>';
+      b.firstChild.textContent = c.label;
+      b.title = c.label;
+      b.addEventListener('pointerdown', (e) => e.preventDefault()); // keep the field focused
       b.addEventListener('click', () => {
-        if (state.running) return;
-        s.naming[kind] = id;
+        committed = true;
+        closeRename();
+        state.settings.naming[ed.kind] = c.id;
+        if (ed.key) delete state.settings.renames[ed.key];
         saveSettings();
-        renderNaming();
         updatePlan();
       });
-      opts.appendChild(b);
-    });
-    if (!opts.querySelector('.on') && opts.firstChild) opts.firstChild.classList.add('on');
-    list.appendChild(row);
+      wrap.appendChild(b);
+    }
   }
-  const foot = document.createElement('p');
-  foot.className = 'muted small nfoot';
-  foot.textContent = 'Folders are automatic: one folder per course, and inside it a Unit1_Content, Unit2_Content… folder holding that unit\'s PDFs, MCQs and separate files.';
-  list.appendChild(foot);
+  box.querySelector('.rn-hint').textContent = free
+    ? 'Enter to save · Esc to cancel · leave empty for the automatic name'
+    : 'Separate files are named after their class. Pick how every one is named.';
+  node.classList.add('editing');
+  node.after(box);
+  const outside = (e) => { if (!box.contains(e.target) && !node.contains(e.target)) { if (free) commit(box.querySelector('input').value); else done(); } };
+  renameOpen = { node, box, outside };
+  document.addEventListener('pointerdown', outside, true);
+  if (free) {
+    const inp = box.querySelector('input');
+    inp.focus();
+    inp.select();
+  } else {
+    const first = box.querySelector('.rn-chip');
+    if (first) first.focus();
+  }
+  box.scrollIntoView({ block: 'nearest' });
 }
-function exampleFor(key, choices) {
-  const { course, unit, cls, units } = sampleCtx();
-  const type = state.settings.categories.find((t) => t !== 8) || 2;
-  const v = nameVars({ course, unit, units: key === 'merged:category' || key === 'merged:all' ? units : null, type: key === 'mcq' ? 8 : type, cls: key === 'file' ? cls : null, title: key === 'file' ? cls.title : '' });
-  return fillPath(tplFor(key, choices), v, NAMING_DEFAULTS[key]);
+
+function resetRename(ed) {
+  if (state.running) return;
+  if (ed.kind === 'root') applyRename(ed, '');
+  else if (ed.key) { delete state.settings.renames[ed.key]; saveSettings(); updatePlan(); }
+}
+
+function wirePreview() {
+  const tree = $('#previewTree');
+  tree.addEventListener('click', (e) => {
+    if (e.target.closest('.rename')) return;
+    const undo = e.target.closest('.undo');
+    const node = e.target.closest('.node.editable');
+    if (!node) return;
+    if (undo) { e.stopPropagation(); resetRename(state.editables[Number(node.dataset.e)]); return; }
+    openRename(node);
+  });
+  tree.addEventListener('keydown', (e) => {
+    const node = e.target.closest && e.target.closest('.node.editable');
+    if (node && e.target === node && (e.key === 'Enter' || e.key === ' ' || e.key === 'F2')) { e.preventDefault(); openRename(node); }
+  });
+  $('#previewFoot').addEventListener('click', (e) => {
+    if (!e.target.closest('#btnResetNames') || state.running) return;
+    state.settings.renames = {};
+    state.settings.naming = { ...NAMING_CHOICE_DEFAULTS };
+    state.settings.rootFolder = DEFAULTS.rootFolder;
+    $('#optRoot').value = DEFAULTS.rootFolder;
+    saveSettings();
+    updatePlan();
+    toast('All names are back to automatic', 'ok');
+  });
 }
 
 // ------------------------------------------------------------------ session handling
@@ -662,7 +783,6 @@ function renderCats() {
 }
 
 function renderUnits() {
-  renderNaming();
   renderCats();
   renderUnitTables();
   updatePlan();
@@ -750,92 +870,140 @@ function updatePlan() {
 }
 
 const docsLabel = (n) => `~${n} doc${n === 1 ? '' : 's'}`;
+// what a kept original most likely is (only saved when it isn't already a PDF)
+const ORIGINAL_EXT = (t) => (t === 2 ? '.pptx' : '.docx');
+
 function renderPreview(p) {
   const tree = $('#previewTree');
   const foot = $('#previewFoot');
   const S = state.settings;
+  if (renameOpen && tree.contains(renameOpen.node)) closeRename();
+  state.editables = [];
   if (!p.courses.length || !p.cats.length) {
-    tree.innerHTML = '<div class="muted small">' + (state.scanned.size ? 'Select units and categories to preview the output.' : 'Scan a course to preview the output.') + '</div>';
+    tree.innerHTML = '<div class="muted small">' + (state.scanned.size ? 'Select units and categories to preview the output.' : 'Scan a course to preview the folders and files.') + '</div>';
     foot.textContent = '';
     return;
   }
-  const root = { name: U.safeName($('#optRoot').value || S.rootFolder, 40), kids: new Map(), folder: true };
-  const add = (path, meta) => {
+  const rootName = U.safeName($('#optRoot').value || S.rootFolder, 40);
+  const root = { kids: new Map() };
+  // segments: a plain string is an automatic folder; {name, edit} can be renamed by clicking it
+  const add = (segs, meta) => {
     let node = root;
-    const segs = path.split('/');
-    segs.forEach((seg, i) => {
+    segs.forEach((sg, i) => {
       const last = i === segs.length - 1;
-      if (!node.kids.has(seg)) node.kids.set(seg, { name: seg, kids: new Map(), folder: !last, meta: last ? meta : null });
-      node = node.kids.get(seg);
+      const name = typeof sg === 'string' ? sg : sg.name;
+      const id = name.toLowerCase();
+      if (!node.kids.has(id)) node.kids.set(id, { name, kids: new Map(), folder: !last, meta: last ? meta : null, edit: typeof sg === 'string' ? null : sg.edit });
+      node = node.kids.get(id);
     });
   };
-  let total = 0;
+  const edit = (kind, x, name, ext = '') => ({ name: name + ext, edit: { kind, x, ext, value: name, key: renameKey(kind, x) } });
+  const mode = S.mergeMode;
+  const fm = S.mcqFormats;
+  const mcqExts = ['pdf', 'html', 'md', 'json'].filter((e) => fm[e]);
+  const sepPdf = S.saveIndividual || mode === 'none';
+  const notes = [];
   for (const c of p.courses.slice(0, 3)) {
-    const cdir = fillPath(tplFor('course'), nameVars({ course: c.course }), NAMING_DEFAULTS.course);
+    const course = c.course;
+    const cd = edit('course', { course }, courseDirOf(course));
+    const ud = (u) => edit('unit', { course, unit: u }, unitDirOf(course, u));
     const docCats = p.cats.filter((t) => t !== 8);
     const has = (u, t) => (u.counts[t] || 0) > 0;
-    // merged files
-    if (S.mergeMode !== 'none') {
-      const key = 'merged:' + S.mergeMode;
-      const cats = S.mergeMode === 'unit-category' ? docCats : p.cats;
-      if (S.mergeMode === 'unit-category') {
-        for (const u of c.units) for (const t of cats) if (has(u, t)) add(`${cdir}/${fillPath(tplFor(key), nameVars({ course: c.course, unit: u, type: t }), NAMING_DEFAULTS[key])}.pdf`, docsLabel(u.counts[t]));
-      } else if (S.mergeMode === 'category') {
+    // combined PDFs
+    if (mode !== 'none') {
+      const merged = (x, meta) => {
+        const ex = { ...x, course, mode, gk: groupKey(mode, x.unit ? x.unit.idx : 0, x.type) };
+        const leaf = edit('merged', ex, nameOf('merged', ex), '.pdf');
+        add(UNIT_SCOPED.has(mode) ? [cd, ud(x.unit), leaf] : [cd, leaf], meta);
+      };
+      const cats = mode === 'unit-category' ? docCats : p.cats;
+      if (mode === 'unit-category') {
+        for (const u of c.units) for (const t of cats) if (has(u, t)) merged({ unit: u, units: [u.idx], type: t }, docsLabel(u.counts[t]));
+      } else if (mode === 'category') {
         for (const t of cats) {
           const us = c.units.filter((u) => has(u, t));
-          if (us.length) add(`${cdir}/${fillPath(tplFor(key), nameVars({ course: c.course, unit: us[0], units: us.map((u) => u.idx), type: t }), NAMING_DEFAULTS[key])}.pdf`, docsLabel(us.reduce((a, u) => a + u.counts[t], 0)));
+          if (us.length) merged({ unit: us[0], units: us.map((u) => u.idx), type: t }, docsLabel(us.reduce((a, u) => a + u.counts[t], 0)));
         }
-      } else if (S.mergeMode === 'unit') {
-        for (const u of c.units) if (cats.some((t) => has(u, t))) add(`${cdir}/${fillPath(tplFor(key), nameVars({ course: c.course, unit: u }), NAMING_DEFAULTS[key])}.pdf`, docsLabel(cats.reduce((a, t) => a + (u.counts[t] || 0), 0)));
+      } else if (mode === 'unit') {
+        for (const u of c.units) if (cats.some((t) => has(u, t))) merged({ unit: u, units: [u.idx], type: null }, docsLabel(cats.reduce((a, t) => a + (u.counts[t] || 0), 0)));
       } else {
-        add(`${cdir}/${fillPath(tplFor(key), nameVars({ course: c.course, unit: c.units[0], units: c.units.map((u) => u.idx) }), NAMING_DEFAULTS[key])}.pdf`, 'everything');
+        const us = c.units.filter((u) => cats.some((t) => has(u, t)));
+        if (us.length) merged({ unit: us[0], units: us.map((u) => u.idx), type: null }, 'everything');
       }
     }
-    // MCQs
+    // MCQs, in each unit's MCQs folder
     if (p.cats.includes(8)) {
-      const fm = S.mcqFormats;
-      const exts = ['pdf', 'html', 'md', 'json'].filter((e) => fm[e]);
       for (const u of c.units) {
         if (!has(u, 8)) continue;
-        const stem = fillPath(tplFor('mcq'), nameVars({ course: c.course, unit: u, type: 8 }), NAMING_DEFAULTS.mcq);
-        for (const e of exts) add(`${cdir}/${stem}.${e}`, e === 'html' ? 'practice' : '');
+        const x = { course, unit: u };
+        const stem = nameOf('mcq', x);
+        for (const e of mcqExts) add([cd, ud(u), 'MCQs', edit('mcq', x, stem, '.' + e)], { pdf: 'with answers', html: 'practice page', md: 'text', json: 'data' }[e]);
       }
     }
-    // individual files (a few samples)
-    if (S.saveIndividual || S.mergeMode === 'none') {
+    // separate files and kept originals (a few examples)
+    if (sepPdf || S.keepOriginals) {
       let shown = 0;
       for (const u of c.units) {
         for (const t of docCats) {
           for (const cl of u.classes) {
             if (!(cl.cells[t] && cl.cells[t].count) || shown >= 6) continue;
-            add(`${cdir}/${fillPath(tplFor('file'), nameVars({ course: c.course, unit: u, type: t, cls: cl, title: cl.title }), NAMING_DEFAULTS.file)}.pdf`, '');
+            const x = { course, unit: u, type: t, cls: cl, title: cl.title };
+            const stem = nameOf('file', x);
+            const dir = [cd, ud(u), 'Files', U.safeName(typeName(t), 60)];
+            if (sepPdf) add([...dir, edit('file', x, stem, '.pdf')], '');
+            if (S.keepOriginals) add([...dir, edit('file', x, stem, ORIGINAL_EXT(t))], 'original, if not PDF');
             shown++;
           }
         }
       }
     }
-    add(`${cdir}/_Report.txt`, 'summary');
-    total++;
+    if (p.cats.includes(9)) add([cd, '_Links.md'], 'web links, if any');
+    add([cd, '_Report.txt'], 'summary');
   }
+
   // render
   let i = 0;
-  const renderNode = (n, depth) => {
-    const rank = (k) => (k.folder ? 1 : /\.pdf$/i.test(k.name) ? 0 : 2); // merged PDFs first, then folders, then the rest
+  const locked = state.running;
+  const nodeHtml = (n, icon, label) => {
+    const ed = n.edit;
+    if (!ed) return `<span class="node">${svg(icon)}<span class="nm" title="${esc(n.name)}">${label || esc(n.name)}</span>${n.meta ? `<span class="meta">${esc(n.meta)}</span>` : ''}</span>`;
+    const id = state.editables.push(ed) - 1;
+    const edited = ed.kind === 'root' ? rootName !== DEFAULTS.rootFolder : !!(ed.key && S.renames[ed.key]);
+    const tip = n.name + (locked ? ' (names are locked while downloading)' : ed.kind === 'file' ? ' (click to choose how separate files are named)' : ' (click to rename)');
+    return `<span class="node editable${edited ? ' edited' : ''}" data-e="${id}" tabindex="${locked ? -1 : 0}" role="button" title="${esc(tip)}">${svg(icon)}<span class="nm">${label || esc(n.name)}</span>` +
+      (edited && !locked ? '<button type="button" class="undo" title="Back to the automatic name" aria-label="Undo rename">↺</button>' : '') +
+      (n.meta ? `<span class="meta">${esc(n.meta)}</span>` : '') + PEN + '</span>';
+  };
+  const renderNode = (n) => {
+    const rank = (k) => (k.folder ? 1 : /\.pdf$/i.test(k.name) ? 0 : 2); // combined PDFs first, then folders, then the rest
     const kids = [...n.kids.values()].sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name, undefined, { numeric: true }));
     const shown = kids.slice(0, 14);
     let h = '<ul>';
     for (const k of shown) {
       const cls = k.folder ? 'folder' : /\.pdf$/i.test(k.name) ? 'pdf' : 'other';
-      h += `<li class="${cls}" style="--i:${i++}"><span class="node">${svg(k.folder ? 'folder' : 'file')}<span title="${esc(k.name)}">${esc(k.name)}</span>${k.meta ? `<span class="meta">${esc(k.meta)}</span>` : ''}</span>`;
-      if (k.folder) h += renderNode(k, depth + 1);
+      h += `<li class="${cls}" style="--i:${i++}">${nodeHtml(k, k.folder ? 'folder' : 'file')}`;
+      if (k.folder) h += renderNode(k);
       h += '</li>';
     }
     if (kids.length > shown.length) h += `<li class="more">+${kids.length - shown.length} more…</li>`;
     return h + '</ul>';
   };
-  tree.innerHTML = `<ul><li class="folder"><span class="node">${svg('folder')}<span>Downloads/${esc(root.name)}</span></span>${renderNode(root, 0)}</li></ul>`;
-  foot.textContent = (p.courses.length > 3 ? `Showing 3 of ${p.courses.length} courses. ` : '') +
-    (S.saveIndividual || S.mergeMode === 'none' ? 'Individual files: a few examples shown. ' : '') + 'Duplicate files are skipped automatically.';
+  const rootNode = { name: rootName, edit: { kind: 'root', value: rootName, ext: '', key: '' } };
+  tree.innerHTML = `<ul><li class="folder">${nodeHtml(rootNode, 'folder', `<span class="pre">Downloads/</span>${esc(rootName)}`)}${renderNode(root)}</li></ul>`;
+  tree.classList.toggle('locked', locked);
+
+  if (p.courses.length > 3) notes.push(`Showing 3 of ${p.courses.length} courses.`);
+  if (sepPdf || S.keepOriginals) notes.push('Separate files: a few examples shown.');
+  if (p.cats.includes(8) && !mcqExts.length) {
+    notes.push(mode === 'unit-category' || mode === 'none' ? 'No MCQ format is ticked, so MCQs are skipped.' : 'MCQs go only into the combined PDFs (no MCQ format ticked).');
+  } else if (p.cats.includes(8) && mode !== 'unit-category' && mode !== 'none') notes.push('MCQs are also added to the combined PDFs.');
+  if (mode !== 'none' && (S.toc || S.separators)) notes.push(`Each combined PDF has ${[S.toc && 'a cover and contents page', S.separators && 'a divider before every document'].filter(Boolean).join(' and ')}.`);
+  notes.push('Identical files are saved once.');
+  const anyCustom = Object.keys(S.renames).length || rootName !== DEFAULTS.rootFolder || Object.keys(NAMING_CHOICE_DEFAULTS).some((k) => S.naming[k] !== NAMING_CHOICE_DEFAULTS[k]);
+  const lead = locked
+    ? '<span class="lockline"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Names are locked while downloading.</span>'
+    : `<span class="hintline">${PEN}Click any name to rename it.${anyCustom ? ' <button type="button" class="linkbtn" id="btnResetNames">Reset names</button>' : ''}</span>`;
+  foot.innerHTML = lead + `<span>${esc(notes.join(' '))}</span>`;
 }
 
 // ------------------------------------------------------------------ job
@@ -1078,7 +1246,7 @@ async function processCourse(c, cats) {
   const S = state.settings;
   const j = state.job;
   const course = c.course;
-  const base = U.safeName(S.rootFolder || DEFAULTS.rootFolder, 40) + '/' + fillPath(tplFor('course'), nameVars({ course }), NAMING_DEFAULTS.course);
+  const base = U.safeName(S.rootFolder || DEFAULTS.rootFolder, 40) + '/' + courseDirOf(course);
   const label = course.code;
   log('info', `── ${course.code} · ${course.title} — Units ${c.units.map((u) => u.idx).join(', ')} · ${cats.map(typeName).join(', ')}`);
   const report = { course, units: c.units, base, docs: [], mcqs: [], merged: [], problems: [], dupes: [] };
@@ -1169,7 +1337,7 @@ async function processCourse(c, cats) {
   for (const d of docs) {
     if (d.dupOf || !d.got) continue;
     checkCancel();
-    const stem = fillPath(tplFor('file'), nameVars({ course, unit: d.unit, type: d.type, cls: d.cls, title: d.title }), NAMING_DEFAULTS.file);
+    const stem = fileStemOf(course, d.unit, d.type, d.cls, d.title);
     d.stem = stem;
     const isPdf = d.kind.kind === 'pdf';
     try {
@@ -1194,7 +1362,7 @@ async function processCourse(c, cats) {
       subtitle: `${course.code} · ${course.title} · Unit ${u.idx}: ${u.name} · ${mu.count} questions`,
       header: `${course.code} · Unit ${u.idx} MCQs`,
     };
-    const stem = fillPath(tplFor('mcq'), nameVars({ course, unit: u, type: 8 }), NAMING_DEFAULTS.mcq);
+    const stem = mcqStemOf(course, u);
     progress('mcq', mi / mcqUnits.size, `${label}: building MCQs for Unit ${u.idx} (${mu.count})`);
     try {
       const needPdf = S.mcqFormats.pdf || !['unit-category', 'none'].includes(S.mergeMode);
@@ -1267,7 +1435,7 @@ async function fetchAndConvert(d, base, S, report, problem, convCache) {
   } catch (e) {
     if (e instanceof Cancelled || e instanceof PESU.SessionExpiredError) throw e;
     log('warn', `${docName(d)}: ${e.message} — trying the browser's own downloader`);
-    const stem = fillPath(tplFor('file'), nameVars({ course: report.course, unit: d.unit, type: d.type, cls: d.cls, title: d.title }), NAMING_DEFAULTS.file);
+    const stem = fileStemOf(report.course, d.unit, d.type, d.cls, d.title);
     const r = await Net.browserDownload(d.path, cleanPath(base + '/' + stem));
     rec.savedRaw = r.filename;
     j.stats.saved++;
@@ -1348,7 +1516,7 @@ async function toPdf(d, got, S, problem) {
 }
 
 function groupParts(parts, mode, course) {
-  const keyOf = (p) => ({ 'unit-category': p.unit.idx + ':' + p.type, category: String(p.type), unit: String(p.unit.idx), all: 'all' }[mode]);
+  const keyOf = (p) => groupKey(mode, p.unit.idx, p.type);
   const ci = (p) => (p.cls ? p.cls.idx : 0);
   const cmp = {
     'unit-category': (a, b) => ci(a) - ci(b) || a.idx - b.idx,
@@ -1362,14 +1530,12 @@ function groupParts(parts, mode, course) {
     if (!map.has(k)) map.set(k, []);
     map.get(k).push(p);
   }
-  const key = 'merged:' + mode;
   const groups = [];
   for (const [, list] of map) {
     list.sort(cmp);
     const first = list[0];
     const units = list.map((p) => p.unit.idx);
-    const v = nameVars({ course, unit: first.unit, units, type: mode === 'unit' || mode === 'all' ? null : first.type });
-    const file = fillPath(tplFor(key), v, NAMING_DEFAULTS[key]) + '.pdf';
+    const file = mergedPathOf(course, mode, { unit: first.unit, units, type: mode === 'unit' || mode === 'all' ? null : first.type }) + '.pdf';
     const title = {
       'unit-category': `Unit ${first.unit.idx}: ${first.unit.name} — ${typeName(first.type)}`,
       category: `${typeName(first.type)} — ${rangeLabel(units)}`,
@@ -1539,12 +1705,41 @@ function wire() {
   });
 }
 
+
+// ------------------------------------------------------------------ light / dark
+function currentTheme() {
+  const t = document.documentElement.dataset.theme;
+  if (t === 'light' || t === 'dark') return t;
+  return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function paintThemeButton() {
+  const b = $('#btnTheme');
+  const dark = currentTheme() === 'dark';
+  b.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+  b.title = dark ? 'Light mode' : 'Dark mode';
+  b.classList.toggle('is-dark', dark);
+}
+function wireTheme() {
+  const b = $('#btnTheme');
+  b.addEventListener('click', () => {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    document.documentElement.classList.add('theme-anim');
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem('pesu-theme', next); } catch (_) { /* fine */ }
+    paintThemeButton();
+    setTimeout(() => document.documentElement.classList.remove('theme-anim'), 400);
+  });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', paintThemeButton);
+  paintThemeButton();
+}
+
 (async function main() {
   FX.reveal($('#heroTitle'));
-  FX.magnet($('#btnStart'));
   await loadSettings();
   buildOptions();
   wire();
+  wirePreview();
+  wireTheme();
   requestAnimationFrame(moveInk);
   renderCats();
   updatePlan();

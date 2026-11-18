@@ -1,5 +1,5 @@
 /* Small interaction effects, written in vanilla JS (ideas inspired by React Bits):
- * spotlight cards, count-up numbers, word reveal, magnetic buttons and a click spark.
+ * spotlight cards, count-up numbers, word reveal and a click spark.
  * Everything is skipped when the user prefers reduced motion. */
 (function (g) {
   'use strict';
@@ -46,17 +46,6 @@
     });
   }
 
-  /** Make a button lean gently towards the pointer. */
-  function magnet(el, strength = 0.14) {
-    if (!el || reduce) return;
-    el.addEventListener('pointermove', (e) => {
-      if (el.disabled) return;
-      const r = el.getBoundingClientRect();
-      el.style.translate = `${(e.clientX - r.left - r.width / 2) * strength}px ${(e.clientY - r.top - r.height / 2) * strength * 1.6}px`;
-    });
-    el.addEventListener('pointerleave', () => { el.style.translate = ''; });
-  }
-
   // Click spark on primary buttons.
   document.addEventListener('click', (e) => {
     if (reduce) return;
@@ -73,5 +62,5 @@
     }
   });
 
-  g.FX = { count, reveal, magnet, reduce };
+  g.FX = { count, reveal, reduce };
 })(self);
