@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PESU Downloader</title>
+  <link rel="icon" href="icons/icon32.png">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="bg-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <header class="hero">
+    <div class="brand">
+      <div class="logo"><img src="icons/icon48.png" alt="" width="34" height="34"></div>
+      <div>
+        <h1>PESU Downloader</h1>
+        <p>Slides, notes, question banks &amp; MCQs — converted, merged, organised.</p>
+      </div>
+    </div>
+    <div class="pills">
+      <span class="pill" id="chipSession" title="PESU Academy login"><i></i><span>Checking session…</span></span>
+      <span class="pill" id="chipHelper" title="Converter helper (PPT/DOC → PDF)"><i></i><span>Checking converter…</span></span>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" role="tab" data-tab="download" aria-selected="true">
+      <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>Download
+    </button>
+    <button class="tab" role="tab" data-tab="activity" aria-selected="false">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Activity <span class="badge hidden" id="logBadge">0</span>
+    </button>
+    <span class="tab-ink" id="tabInk"></span>
+  </nav>
+
+  <div class="banners">
+    <div class="banner hidden" id="loginBanner">
+      <div class="banner-icon">🔐</div>
+      <div class="banner-text">
+        <strong id="loginTitle">Log in to PESU Academy</strong>
+        <span id="loginText">Open PESU Academy, log in, then press Continue.</span>
+      </div>
+      <div class="row">
+        <button class="btn" id="btnOpenPesu">Open PESU Academy</button>
+        <button class="btn primary" id="btnLoginRetry">Continue</button>
+      </div>
+    </div>
+    <div class="banner warn hidden" id="helperBanner">
+      <div class="banner-icon">🧩</div>
+      <div class="banner-text">
+        <strong>Converter helper not installed</strong>
+        <span>PDFs still download &amp; merge. To turn PPT/PPTX/DOC/DOCX into PDF, run <code id="helperCmd">native-host/install</code> once (see README), then Re-check.</span>
+      </div>
+      <div class="row"><button class="btn" id="btnHelperRetry">Re-check</button></div>
+    </div>
+  </div>
+
+  <!-- ===================================================== DOWNLOAD TAB -->
+  <main class="panel active" id="panel-download" role="tabpanel">
+
+    <section class="card step" id="stepCourses" style="--d:0">
+      <div class="card-head">
+        <div class="step-title"><span class="num">1</span><div><h2>Pick courses</h2><p>Choose a semester, then tick the courses you want.</p></div></div>
+        <label class="select-wrap"><span>Semester</span><select id="semester" disabled><option>Loading…</option></select></label>
+      </div>
+      <div id="courseList" class="course-grid"><div class="empty shimmer">Loading courses…</div></div>
+      <div class="card-foot">
+        <span class="muted" id="courseHint">No course selected</span>
+        <button class="btn primary" id="btnScan" disabled>
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span>Scan courses</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="card step" id="stepUnits" style="--d:1" data-locked="true">
+      <div class="card-head">
+        <div class="step-title"><span class="num">2</span><div><h2>Choose content</h2><p>Toggle categories, untick units you don't need. Numbers show how much each unit has.</p></div></div>
+        <div class="row">
+          <button class="btn ghost small" id="btnAllUnits">All units</button>
+          <button class="btn ghost small" id="btnNoUnits">Clear</button>
+        </div>
+      </div>
+      <div class="cats" id="cats"></div>
+      <div id="unitTables"><div class="empty">Scan a course to see its units here.</div></div>
+    </section>
+
+    <section class="card step" id="stepOptions" style="--d:2">
+      <div class="card-head">
+        <div class="step-title"><span class="num">3</span><div><h2>Shape the output</h2><p>How files are combined and named. The preview on the right updates live.</p></div></div>
+      </div>
+      <div class="out-grid">
+        <div class="out-left">
+          <h3 class="sub">How should files be combined?</h3>
+          <div class="modes" id="modes"></div>
+
+          <h3 class="sub">Extras</h3>
+          <div class="switches">
+            <label class="switch"><input type="checkbox" id="optToc"><span class="track"><span class="thumb"></span></span><span class="sw-text"><b>Contents page + bookmarks</b><small>Clickable table of contents at the start of every merged PDF</small></span></label>
+            <label class="switch"><input type="checkbox" id="optSeparators"><span class="track"><span class="thumb"></span></span><span class="sw-text"><b>Title page before each document</b><small>A divider page naming the class &amp; document</small></span></label>
+            <label class="switch"><input type="checkbox" id="optIndividual"><span class="track"><span class="thumb"></span></span><span class="sw-text"><b>Also keep every file separately</b><small>Each document as its own PDF, in the Files folder</small></span></label>
+            <label class="switch"><input type="checkbox" id="optOriginals"><span class="track"><span class="thumb"></span></span><span class="sw-text"><b>Keep original PPT / DOC files</b><small>Saved next to their PDF versions</small></span></label>
+          </div>
+
+          <h3 class="sub">MCQs</h3>
+          <div class="mcq-box">
+            <div class="seg" id="segAnswers" role="radiogroup" aria-label="MCQ answers">
+              <button data-v="inline">Mark answers</button>
+              <button data-v="end">Key at end</button>
+              <button data-v="both">Both</button>
+              <button data-v="none">Hide</button>
+            </div>
+            <div class="fmt-chips">
+              <label class="fchip"><input type="checkbox" id="fmtPdf"><span>PDF</span></label>
+              <label class="fchip"><input type="checkbox" id="fmtHtml"><span>Practice page</span></label>
+              <label class="fchip"><input type="checkbox" id="fmtMd"><span>Markdown</span></label>
+              <label class="fchip"><input type="checkbox" id="fmtJson"><span>JSON</span></label>
+            </div>
+          </div>
+
+          <h3 class="sub">Names &amp; location</h3>
+          <div class="names">
+            <label class="field"><span>Folder inside Downloads</span><input type="text" id="optRoot" maxlength="40" spellcheck="false"></label>
+            <label class="field"><span>Converter</span>
+              <select id="optEngine">
+                <option value="auto">Auto — MS Office, then LibreOffice</option>
+                <option value="office">MS Office only</option>
+                <option value="libreoffice">LibreOffice only</option>
+              </select>
+            </label>
+            <details class="naming" id="namingBox">
+              <summary><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg>Customize file names<span class="muted small">— optional</span></summary>
+              <div class="naming-body">
+                <p class="muted small">Click a token to insert it into the field you're editing. Use <code>/</code> to create sub-folders.</p>
+                <div class="tokens" id="tokens"></div>
+                <div class="tpl-list" id="tplList"></div>
+                <button class="btn ghost small" id="btnResetNames">Reset to defaults</button>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <aside class="preview">
+          <div class="preview-head"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg>What you'll get</div>
+          <div class="tree" id="previewTree"><div class="muted small">Scan a course to preview the output.</div></div>
+          <div class="preview-foot muted small" id="previewFoot"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="card step" id="stepRun" style="--d:3">
+      <div class="card-head">
+        <div class="step-title"><span class="num">4</span><div><h2>Download</h2><p id="planSummary">Nothing selected yet.</p></div></div>
+        <div class="row">
+          <button class="btn" id="btnCancel" disabled>Cancel</button>
+          <button class="btn primary big" id="btnStart" disabled>
+            <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg><span>Start</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="run hidden" id="runBox">
+        <ol class="phases" id="phases">
+          <li data-p="lists"><span class="dot"></span>Reading</li>
+          <li data-p="docs"><span class="dot"></span>Downloading &amp; converting</li>
+          <li data-p="mcq"><span class="dot"></span>MCQs</li>
+          <li data-p="merge"><span class="dot"></span>Merging</li>
+          <li data-p="done"><span class="dot"></span>Done</li>
+        </ol>
+        <div class="bar"><div id="bar"></div></div>
+        <div class="progress-meta"><span id="phase">Preparing…</span><span id="pct">0%</span></div>
+        <div class="stats" id="stats"></div>
+      </div>
+
+      <div class="result hidden" id="resultBox"></div>
+    </section>
+  </main>
+
+  <!-- ===================================================== ACTIVITY TAB -->
+  <main class="panel" id="panel-activity" role="tabpanel">
+    <section class="card log-card">
+      <div class="log-tools">
+        <div class="seg" id="logFilter">
+          <button data-v="all" class="on">All</button>
+          <button data-v="problems">Problems <span id="probCount"></span></button>
+          <button data-v="ok">Successes</button>
+        </div>
+        <input type="search" id="logSearch" placeholder="Search the log…">
+        <div class="row">
+          <button class="btn small" id="btnCopyLog">Copy</button>
+          <button class="btn small" id="btnSaveLog">Save .txt</button>
+          <button class="btn small ghost" id="btnClearLog">Clear</button>
+        </div>
+      </div>
+      <ol class="log" id="log"><li class="log-empty">Nothing yet — activity appears here while you work.</li></ol>
+    </section>
+  </main>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <footer class="muted">Files are saved by your browser into Downloads. Nothing leaves your computer except requests to pesuacademy.com.</footer>
+
+  <script src="lib/pdf-lib.min.js"></script>
+  <script src="lib/fontkit.umd.min.js"></script>
+  <script src="src/util.js"></script>
+  <script src="src/pesu.js"></script>
+  <script src="src/pdf.js"></script>
+  <script src="src/mcq.js"></script>
+  <script src="src/native.js"></script>
+  <script src="src/net.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

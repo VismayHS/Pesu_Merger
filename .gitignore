@@ -1,0 +1,16 @@
+# Private signing key for the fixed extension ID - never commit
+*.pem
+
+# Generated per machine by the installers
+native-host/run_host.bat
+native-host/run_host.sh
+native-host/com.pesu.downloader.json
+
+# Python / Node / OS junk
+__pycache__/
+*.pyc
+node_modules/
+package-lock.json
+.DS_Store
+Thumbs.db
+*.log
