@@ -626,11 +626,14 @@ async function onLoginContinue() {
 async function checkHelper() {
   pill('#chipHelper', '', 'Checking converter…');
   const info = await host.ping();
+  const plat = ((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '').toLowerCase();
   if (!info) {
     pill('#chipHelper', 'warn', 'Converter not installed');
-    const plat = ((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '').toLowerCase();
     const cmd = plat.includes('win') ? 'native-host\\install.bat' : 'bash native-host/install.sh';
+    $('#helperTitle').textContent = 'Converter helper not installed';
+    $('#helperText').innerHTML = 'PDFs still download and merge. To turn PPT and DOC files into PDF, run <code id="helperCmd"></code> once (see the README), then press Re-check.';
     $('#helperCmd').textContent = cmd;
+    $('#btnGetLibre').classList.add('hidden');
     $('#helperBanner').classList.remove('hidden');
     return;
   }
@@ -640,7 +643,15 @@ async function checkHelper() {
   if (o.powerpoint || o.word) engines.push('MS Office');
   if (info.libreoffice) engines.push('LibreOffice');
   pill('#chipHelper', engines.length ? 'ok' : 'warn', engines.length ? 'Converter: ' + engines.join(' + ') : 'No Office / LibreOffice');
-  if (!engines.length) log('warn', 'Converter helper is installed but neither MS Office nor LibreOffice was found — PPT/DOC files will be kept as originals.');
+  if (!engines.length) {
+    log('warn', 'Converter helper is installed but neither MS Office nor LibreOffice was found — PPT/DOC files will be kept as originals.');
+    const how = plat.includes('mac') ? ' On a Mac you can also run <code>brew install --cask libreoffice</code>.'
+      : plat.includes('linux') ? ' On Linux: <code>sudo apt install libreoffice</code> (or your distro\'s package).' : '';
+    $('#helperTitle').textContent = 'Install LibreOffice to convert PPT and DOC files';
+    $('#helperText').innerHTML = 'The helper is ready, but it needs Microsoft Office or the free LibreOffice to do the converting. Until then, PDFs still download and merge, and PPT/DOC files are saved as they are.' + how + ' After installing, press Re-check (no need to run the installer again).';
+    $('#btnGetLibre').classList.remove('hidden');
+    $('#helperBanner').classList.remove('hidden');
+  }
 }
 
 // ------------------------------------------------------------------ semesters / courses

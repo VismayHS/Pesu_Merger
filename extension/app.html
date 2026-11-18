@@ -48,10 +48,13 @@
     <div class="banner warn hidden" id="helperBanner">
       <svg class="banner-icon" viewBox="0 0 24 24"><path d="M14 4h-4v3a2 2 0 1 1-4 0V4H4v6h3a2 2 0 1 1 0 4H4v6h6v-3a2 2 0 1 1 4 0v3h6v-6h-3a2 2 0 1 1 0-4h3V4z"/></svg>
       <div class="banner-text">
-        <strong>Converter helper not installed</strong>
-        <span>PDFs still download and merge. To turn PPT and DOC files into PDF, run <code id="helperCmd">native-host/install</code> once (see the README), then re-check.</span>
+        <strong id="helperTitle">Converter helper not installed</strong>
+        <span id="helperText">PDFs still download and merge. To turn PPT and DOC files into PDF, run <code id="helperCmd">native-host/install</code> once (see the README), then re-check.</span>
       </div>
-      <div class="row"><button class="btn" id="btnHelperRetry">Re-check</button></div>
+      <div class="row">
+        <a class="btn hidden" id="btnGetLibre" href="https://www.libreoffice.org/download/" target="_blank" rel="noopener">Get LibreOffice (free)</a>
+        <button class="btn" id="btnHelperRetry">Re-check</button>
+      </div>
     </div>
   </div>
 

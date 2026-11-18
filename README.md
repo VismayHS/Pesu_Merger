@@ -117,6 +117,18 @@ git clone https://github.com/VismayHS/Pesu_Merger.git
 
 That's it for PDF material. To also convert PPT and DOC files, do step 3.
 
+> [!NOTE]
+> **Does it work without Office or LibreOffice?** Yes. You can skip step 3 and everything else still works. Here's what changes:
+>
+> | | Without step 3 | With step 3 |
+> |---|---|---|
+> | PDF files (most notes and slides on PESU) | ✅ Downloaded and combined | ✅ Downloaded and combined |
+> | MCQs with answers | ✅ | ✅ |
+> | Images and text files | ✅ Turned into PDF | ✅ Turned into PDF |
+> | PPT / PPTX / DOC / DOCX / XLSX | ⚠️ Saved as the original file, not added to the combined PDFs | ✅ Turned into PDF and combined |
+>
+> The extension tells you which case you're in: the top-right corner shows **Converter: MS Office** or **LibreOffice** when it's ready. If something is missing, a banner says what to install.
+
 ### 3. Install the converter helper (for PPT and DOC files)
 
 Browsers can't turn PowerPoint or Word files into PDF themselves. A small helper program on your computer does it, using Microsoft Office or the free LibreOffice. It needs no admin rights and works offline.
@@ -154,6 +166,14 @@ bash native-host/install.sh
 A **Snap or Flatpak** browser can't start local helpers. Use the `.deb`/`.rpm` build of Chrome, Brave or Edge.
 
 </details>
+
+**Don't have Microsoft Office?** Install **LibreOffice**. It's free, and it works on Windows, macOS and Linux:
+
+- download it from **[libreoffice.org/download](https://www.libreoffice.org/download/)** and install it with the default options; or
+- on macOS, `brew install --cask libreoffice`; or
+- on Linux, `sudo apt install libreoffice` (or your distro's package).
+
+You can install LibreOffice before or after the helper. If you add it later, just press **Re-check** in the extension. You don't need to run the installer again.
 
 The installer finds Python, registers the helper with every supported browser on your computer, runs a self-test and tells you which converter it found.
 
