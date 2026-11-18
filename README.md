@@ -86,6 +86,11 @@ Downloads/
 
 You need a Chromium-based browser: **Chrome, Brave, Edge, Chromium, Vivaldi or Arc**, on **Windows, macOS or Linux**.
 
+> [!WARNING]
+> **Safari and Firefox are not supported.** Opera may work but isn't tested. Phones and tablets aren't supported either, because mobile browsers can't load extensions like this.
+>
+> **Use Safari or Firefox?** Install [Chrome](https://www.google.com/chrome/), [Brave](https://brave.com/download/) or [Edge](https://www.microsoft.com/edge) (all free; Edge is already on every Windows PC). Use it just for PESU downloads and keep your usual browser for everything else. Log in to PESU Academy in that browser, since the extension uses the login of the browser it's installed in.
+
 ### 1. Download the code
 
 **Option A (easiest):** on this page click the green **Code** button, then **Download ZIP**, and unzip it.
