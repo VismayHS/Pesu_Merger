@@ -48,11 +48,11 @@ const FILE_DIR = UNIT_DIR + 'Files/{category}/';
 const UNIT_SCOPED = new Set(['unit-category', 'unit']); // merge modes that produce one file per unit
 const styleTpl = (kind, id) => (NAME_STYLES[kind].find((x) => x[0] === id) || NAME_STYLES[kind][0])[1];
 const MODES = [
-  { v: 'unit-category', t: 'Per unit, per category', d: 'Unit 1 - Slides, Unit 1 - Notes…', art: [[10, 34], [10, 22], [10, 40], [10, 28], [10, 18], [10, 30]] },
-  { v: 'category', t: 'Per category', d: 'All units\' slides in one PDF', art: [[16, 40], [16, 30], [16, 44]] },
-  { v: 'unit', t: 'Per unit', d: 'Everything for a unit in one PDF', art: [[24, 38], [24, 44]] },
-  { v: 'all', t: 'One single PDF', d: 'All selected material together', art: [[52, 44]] },
-  { v: 'none', t: "Don't merge", d: 'Just the individual files', art: [[7, 14], [7, 18], [7, 12], [7, 16], [7, 14], [7, 18], [7, 12]] },
+  { v: 'unit-category', t: 'Per unit and category', d: 'Unit 1 - Slides, Unit 1 - Notes…', art: [[4, 18], [4, 12], [4, 22], [4, 15], [4, 10]] },
+  { v: 'category', t: 'Per category', d: 'All units\' slides in one PDF', art: [[7, 20], [7, 14], [7, 22]] },
+  { v: 'unit', t: 'Per unit', d: 'Everything for a unit in one PDF', art: [[11, 17], [11, 22]] },
+  { v: 'all', t: 'One single PDF', d: 'All selected material together', art: [[24, 22]] },
+  { v: 'none', t: "Don't merge", d: 'Just the individual files', art: [[3, 8], [3, 12], [3, 7], [3, 10], [3, 8], [3, 12]] },
 ];
 
 const DEFAULTS = {
@@ -1045,7 +1045,7 @@ function showResult(outcome) {
       <svg class="check-anim" viewBox="0 0 52 52"><circle cx="26" cy="26" r="22" fill="none"/><path fill="none" d="${outcome === 'ok' ? 'M15 27l7 7 15-16' : 'M18 18l16 16M34 18 18 34'}"/></svg>
       <div><h3>${title}</h3><div class="muted">${s.saved} file(s) saved in ${U.fmtDuration(Date.now() - j.started)} · ${s.converted} converted · ${s.dupes} duplicates skipped · ${s.mcqs} MCQs</div></div>
     </div>
-    ${files.length ? `<ul class="files">${files.map((f, i) => `<li style="--i:${i}">${svg('file')}<span>${esc(f.path.split('/').slice(-2).join(' / '))}</span><span class="meta">${f.pages ? f.pages + ' pages · ' : ''}${U.fmtBytes(f.size)}</span></li>`).join('')}</ul>` : ''}
+    ${files.length ? `<ul class="files">${files.map((f, i) => `<li style="--i:${i}">${svg('file')}<span title="${esc(f.path)}">${esc(f.path.split('/').pop())}</span><span class="meta">${f.pages ? f.pages + ' pages · ' : ''}${U.fmtBytes(f.size)}</span></li>`).join('')}</ul>` : ''}
     ${probs ? `<ul class="probs">${[...j.errors, ...j.warnings].slice(0, 6).map((m) => `<li>${esc(m)}</li>`).join('')}${probs > 6 ? `<li>…and ${probs - 6} more in Activity / _Report.txt</li>` : ''}</ul>` : ''}
     <div class="row">
       <button class="btn primary" id="btnOpenFolder" ${j.lastDownloadId == null ? 'disabled' : ''}>${svg('folder')}<span>Open folder</span></button>

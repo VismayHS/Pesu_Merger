@@ -1,5 +1,5 @@
 // Minimal Chrome DevTools Protocol driver (Node 22+ has global WebSocket/fetch).
-// node tests/cdp.js <port> <url> <outPng> [jsToEval]
+// node tests/cdp.js <port> <url> <outPng> [jsToEval]   (env: W, H, THEME=light|dark)
 const [port, url, outPng, js] = process.argv.slice(2);
 const fs = require('fs');
 
@@ -16,7 +16,8 @@ const fs = require('fs');
   const send = (method, params = {}) => new Promise((r) => { const i = ++id; pending.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
   await send('Page.enable');
   await send('Runtime.enable');
-  await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 1500, deviceScaleFactor: 1, mobile: false });
+  await send('Emulation.setDeviceMetricsOverride', { width: +(process.env.W || 1280), height: +(process.env.H || 1500), deviceScaleFactor: 1, mobile: false });
+  if (process.env.THEME) await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: process.env.THEME }] });
   await new Promise((r) => setTimeout(r, 6000));
   if (js) {
     const res = await send('Runtime.evaluate', { expression: js, awaitPromise: true, returnByValue: true });

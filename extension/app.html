@@ -8,35 +8,29 @@
   <link rel="stylesheet" href="app.css">
 </head>
 <body>
-  <div class="bg-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
-
-  <header class="hero">
-    <div class="brand">
-      <div class="logo"><img src="icons/icon48.png" alt="" width="34" height="34"></div>
-      <div>
-        <h1>PESU Downloader</h1>
-        <p>Slides, notes, question banks &amp; MCQs — converted, merged, organised.</p>
+  <header class="topbar">
+    <div class="topbar-in">
+      <div class="brand">
+        <img src="icons/icon48.png" alt="" width="26" height="26">
+        <span class="wordmark">PESU Downloader</span>
       </div>
-    </div>
-    <div class="pills">
-      <span class="pill" id="chipSession" title="PESU Academy login"><i></i><span>Checking session…</span></span>
-      <span class="pill" id="chipHelper" title="Converter helper (PPT/DOC → PDF)"><i></i><span>Checking converter…</span></span>
+
+      <nav class="tabs" role="tablist">
+        <span class="tab-ink" id="tabInk"></span>
+        <button class="tab active" role="tab" data-tab="download" aria-selected="true">Download</button>
+        <button class="tab" role="tab" data-tab="activity" aria-selected="false">Activity <span class="badge hidden" id="logBadge">0</span></button>
+      </nav>
+
+      <div class="status">
+        <span class="pill" id="chipSession" title="PESU Academy login"><i></i><span>Checking session…</span></span>
+        <span class="pill" id="chipHelper" title="Converter helper (PPT/DOC → PDF)"><i></i><span>Checking converter…</span></span>
+      </div>
     </div>
   </header>
 
-  <nav class="tabs" role="tablist">
-    <button class="tab active" role="tab" data-tab="download" aria-selected="true">
-      <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>Download
-    </button>
-    <button class="tab" role="tab" data-tab="activity" aria-selected="false">
-      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Activity <span class="badge hidden" id="logBadge">0</span>
-    </button>
-    <span class="tab-ink" id="tabInk"></span>
-  </nav>
-
   <div class="banners">
     <div class="banner hidden" id="loginBanner">
-      <div class="banner-icon">🔐</div>
+      <svg class="banner-icon" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
       <div class="banner-text">
         <strong id="loginTitle">Log in to PESU Academy</strong>
         <span id="loginText">Open PESU Academy, log in, then press Continue.</span>
@@ -47,157 +41,176 @@
       </div>
     </div>
     <div class="banner warn hidden" id="helperBanner">
-      <div class="banner-icon">🧩</div>
+      <svg class="banner-icon" viewBox="0 0 24 24"><path d="M14 4h-4v3a2 2 0 1 1-4 0V4H4v6h3a2 2 0 1 1 0 4H4v6h6v-3a2 2 0 1 1 4 0v3h6v-6h-3a2 2 0 1 1 0-4h3V4z"/></svg>
       <div class="banner-text">
         <strong>Converter helper not installed</strong>
-        <span>PDFs still download &amp; merge. To turn PPT/PPTX/DOC/DOCX into PDF, run <code id="helperCmd">native-host/install</code> once (see README), then Re-check.</span>
+        <span>PDFs still download and merge. To turn PPT and DOC files into PDF, run <code id="helperCmd">native-host/install</code> once (see the README), then re-check.</span>
       </div>
       <div class="row"><button class="btn" id="btnHelperRetry">Re-check</button></div>
     </div>
   </div>
 
-  <!-- ===================================================== DOWNLOAD TAB -->
-  <main class="panel active" id="panel-download" role="tabpanel">
+  <!-- ===================================================== DOWNLOAD -->
+  <main class="panel active layout" id="panel-download" role="tabpanel">
+    <div class="flow">
 
-    <section class="card step" id="stepCourses" style="--d:0">
-      <div class="card-head">
-        <div class="step-title"><span class="num">1</span><div><h2>Pick courses</h2><p>Choose a semester, then tick the courses you want.</p></div></div>
-        <label class="select-wrap"><span>Semester</span><select id="semester" disabled><option>Loading…</option></select></label>
-      </div>
-      <div id="courseList" class="course-grid"><div class="empty shimmer">Loading courses…</div></div>
-      <div class="card-foot">
-        <span class="muted" id="courseHint">No course selected</span>
-        <button class="btn primary" id="btnScan" disabled>
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <span>Scan courses</span>
-        </button>
-      </div>
-    </section>
+      <section class="step" id="stepCourses" style="--d:0">
+        <header class="step-head">
+          <span class="step-no">01</span>
+          <div class="step-title"><h2>Courses</h2><p>Pick a semester and tick what you want.</p></div>
+          <label class="select-wrap"><span>Semester</span><select id="semester" disabled><option>Loading…</option></select></label>
+        </header>
+        <div id="courseList" class="course-grid"><div class="empty shimmer">Loading courses…</div></div>
+        <footer class="step-foot">
+          <span class="muted" id="courseHint">No course selected</span>
+          <button class="btn primary" id="btnScan" disabled>
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg>
+            <span>Scan courses</span>
+          </button>
+        </footer>
+      </section>
 
-    <section class="card step" id="stepUnits" style="--d:1" data-locked="true">
-      <div class="card-head">
-        <div class="step-title"><span class="num">2</span><div><h2>Choose content</h2><p>Toggle categories, untick units you don't need. Numbers show how much each unit has.</p></div></div>
-        <div class="row">
-          <button class="btn ghost small" id="btnAllUnits">All units</button>
-          <button class="btn ghost small" id="btnNoUnits">Clear</button>
-        </div>
-      </div>
-      <div class="cats" id="cats"></div>
-      <div id="unitTables"><div class="empty">Scan a course to see its units here.</div></div>
-    </section>
+      <section class="step" id="stepUnits" style="--d:1" data-locked="true">
+        <header class="step-head">
+          <span class="step-no">02</span>
+          <div class="step-title"><h2>Content</h2><p>Choose categories, then untick any units you don't need.</p></div>
+          <div class="row tight">
+            <button class="btn ghost small" id="btnAllUnits">Select all</button>
+            <button class="btn ghost small" id="btnNoUnits">Clear</button>
+          </div>
+        </header>
+        <div class="cats" id="cats"></div>
+        <div id="unitTables"><div class="empty">Scan a course to see its units here.</div></div>
+      </section>
 
-    <section class="card step" id="stepOptions" style="--d:2">
-      <div class="card-head">
-        <div class="step-title"><span class="num">3</span><div><h2>Shape the output</h2><p>How files are combined and named. The preview on the right updates live.</p></div></div>
-      </div>
-      <div class="out-grid">
-        <div class="out-left">
-          <h3 class="sub">How should files be combined?</h3>
+      <section class="step" id="stepOptions" style="--d:2">
+        <header class="step-head">
+          <span class="step-no">03</span>
+          <div class="step-title"><h2>Output</h2><p>How files are combined. The panel on the right shows the result.</p></div>
+        </header>
+
+        <div class="opt-group">
+          <h3 class="sub">Combine files</h3>
           <div class="modes" id="modes"></div>
+        </div>
 
+        <div class="opt-group">
           <h3 class="sub">Extras</h3>
           <div class="switches">
-            <label class="switch"><input type="checkbox" id="optToc"><span class="track"><span class="thumb"></span></span><span class="sw-text"><b>Contents page + bookmarks</b><small>Clickable table of contents at the start of every merged PDF</small></span></label>
-            <label class="switch"><input type="checkbox" id="optSeparators"><span class="track"><span class="thumb"></span></span><span class="sw-text"><b>Title page before each document</b><small>A divider page naming the class &amp; document</small></span></label>
-            <label class="switch"><input type="checkbox" id="optIndividual"><span class="track"><span class="thumb"></span></span><span class="sw-text"><b>Also keep every file separately</b><small>Each document as its own PDF, in the Files folder</small></span></label>
-            <label class="switch"><input type="checkbox" id="optOriginals"><span class="track"><span class="thumb"></span></span><span class="sw-text"><b>Keep original PPT / DOC files</b><small>Saved next to their PDF versions</small></span></label>
+            <label class="switch"><input type="checkbox" id="optToc"><span class="track"><span class="thumb"></span></span><span class="sw-text"><b>Cover and contents page</b><small>Clickable topic list and bookmarks in every merged PDF</small></span></label>
+            <label class="switch"><input type="checkbox" id="optSeparators"><span class="track"><span class="thumb"></span></span><span class="sw-text"><b>Divider before each document</b><small>A title page naming the class and document</small></span></label>
+            <label class="switch"><input type="checkbox" id="optIndividual"><span class="track"><span class="thumb"></span></span><span class="sw-text"><b>Keep separate files too</b><small>Each document as its own PDF, in a Files folder</small></span></label>
+            <label class="switch"><input type="checkbox" id="optOriginals"><span class="track"><span class="thumb"></span></span><span class="sw-text"><b>Keep original PPT / DOC</b><small>Saved next to the converted PDFs</small></span></label>
           </div>
+        </div>
 
+        <div class="opt-group">
           <h3 class="sub">MCQs</h3>
           <div class="mcq-box">
-            <div class="seg" id="segAnswers" role="radiogroup" aria-label="MCQ answers">
-              <button data-v="inline">Mark answers</button>
-              <button data-v="end">Key at end</button>
-              <button data-v="both">Both</button>
-              <button data-v="none">Hide</button>
+            <div class="mcq-line">
+              <span class="label">Answers</span>
+              <div class="seg" id="segAnswers" role="radiogroup" aria-label="MCQ answers">
+                <button data-v="inline">Marked</button>
+                <button data-v="end">Key at end</button>
+                <button data-v="both">Both</button>
+                <button data-v="none">Hidden</button>
+              </div>
             </div>
-            <div class="fmt-chips">
-              <label class="fchip"><input type="checkbox" id="fmtPdf"><span>PDF</span></label>
-              <label class="fchip"><input type="checkbox" id="fmtHtml"><span>Practice page</span></label>
-              <label class="fchip"><input type="checkbox" id="fmtMd"><span>Markdown</span></label>
-              <label class="fchip"><input type="checkbox" id="fmtJson"><span>JSON</span></label>
+            <div class="mcq-line">
+              <span class="label">Save as</span>
+              <div class="fmt-chips">
+                <label class="fchip"><input type="checkbox" id="fmtPdf"><span>PDF</span></label>
+                <label class="fchip"><input type="checkbox" id="fmtHtml"><span>Practice page</span></label>
+                <label class="fchip"><input type="checkbox" id="fmtMd"><span>Markdown</span></label>
+                <label class="fchip"><input type="checkbox" id="fmtJson"><span>JSON</span></label>
+              </div>
             </div>
           </div>
+        </div>
 
-          <h3 class="sub">Names &amp; location</h3>
+        <div class="opt-group">
+          <h3 class="sub">Location</h3>
           <div class="names">
             <label class="field"><span>Folder inside Downloads</span><input type="text" id="optRoot" maxlength="40" spellcheck="false"></label>
             <label class="field"><span>Converter</span>
               <select id="optEngine">
-                <option value="auto">Auto — MS Office, then LibreOffice</option>
+                <option value="auto">Automatic: MS Office, then LibreOffice</option>
                 <option value="office">MS Office only</option>
                 <option value="libreoffice">LibreOffice only</option>
               </select>
             </label>
-            <details class="naming" id="namingBox">
-              <summary><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg>File names<span class="muted small">— optional, pick a style</span></summary>
-              <div class="naming-body">
-                <div class="tpl-list" id="tplList"></div>
-                <button class="btn ghost small" id="btnResetNames">Reset to defaults</button>
-              </div>
-            </details>
           </div>
+          <details class="naming" id="namingBox">
+            <summary><span>File names</span><span class="muted small">Optional. Pick a style.</span></summary>
+            <div class="naming-body">
+              <div class="tpl-list" id="tplList"></div>
+              <button class="btn ghost small" id="btnResetNames">Reset to defaults</button>
+            </div>
+          </details>
+        </div>
+      </section>
+    </div>
+
+    <aside class="side" id="stepRun">
+      <div class="side-card">
+        <div class="side-head">
+          <h2>Your download</h2>
+          <p id="planSummary" class="muted">Nothing selected yet.</p>
         </div>
 
-        <aside class="preview">
-          <div class="preview-head"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg>What you'll get</div>
-          <div class="tree" id="previewTree"><div class="muted small">Scan a course to preview the output.</div></div>
+        <div class="preview">
+          <div class="tree" id="previewTree"><div class="muted small">Scan a course to preview the folders and files.</div></div>
           <div class="preview-foot muted small" id="previewFoot"></div>
-        </aside>
-      </div>
-    </section>
-
-    <section class="card step" id="stepRun" style="--d:3">
-      <div class="card-head">
-        <div class="step-title"><span class="num">4</span><div><h2>Download</h2><p id="planSummary">Nothing selected yet.</p></div></div>
-        <div class="row">
-          <button class="btn" id="btnCancel" disabled>Cancel</button>
-          <button class="btn primary big" id="btnStart" disabled>
-            <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg><span>Start</span>
-          </button>
         </div>
-      </div>
 
-      <div class="run hidden" id="runBox">
-        <ol class="phases" id="phases">
-          <li data-p="lists"><span class="dot"></span>Reading</li>
-          <li data-p="docs"><span class="dot"></span>Downloading &amp; converting</li>
-          <li data-p="mcq"><span class="dot"></span>MCQs</li>
-          <li data-p="merge"><span class="dot"></span>Merging</li>
-          <li data-p="done"><span class="dot"></span>Done</li>
-        </ol>
-        <div class="bar"><div id="bar"></div></div>
-        <div class="progress-meta"><span id="phase">Preparing…</span><span id="pct">0%</span></div>
-        <div class="stats" id="stats"></div>
-      </div>
+        <div class="actions">
+          <button class="btn primary big" id="btnStart" disabled>
+            <svg viewBox="0 0 24 24"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg><span>Start</span>
+          </button>
+          <button class="btn ghost" id="btnCancel" disabled>Cancel</button>
+        </div>
 
-      <div class="result hidden" id="resultBox"></div>
-    </section>
+        <div class="run hidden" id="runBox">
+          <ol class="phases" id="phases">
+            <li data-p="lists"><span class="dot"></span>Reading the portal</li>
+            <li data-p="docs"><span class="dot"></span>Downloading and converting</li>
+            <li data-p="mcq"><span class="dot"></span>MCQs</li>
+            <li data-p="merge"><span class="dot"></span>Merging</li>
+            <li data-p="done"><span class="dot"></span>Done</li>
+          </ol>
+          <div class="bar"><div id="bar"></div></div>
+          <div class="progress-meta"><span id="phase">Preparing…</span><span id="pct">0%</span></div>
+          <div class="stats" id="stats"></div>
+        </div>
+
+        <div class="result hidden" id="resultBox"></div>
+      </div>
+    </aside>
   </main>
 
-  <!-- ===================================================== ACTIVITY TAB -->
+  <!-- ===================================================== ACTIVITY -->
   <main class="panel" id="panel-activity" role="tabpanel">
-    <section class="card log-card">
+    <section class="step log-card">
       <div class="log-tools">
         <div class="seg" id="logFilter">
           <button data-v="all" class="on">All</button>
           <button data-v="problems">Problems <span id="probCount"></span></button>
           <button data-v="ok">Successes</button>
         </div>
-        <input type="search" id="logSearch" placeholder="Search the log…">
-        <div class="row">
+        <input type="search" id="logSearch" placeholder="Search the log">
+        <div class="row tight">
           <button class="btn small" id="btnCopyLog">Copy</button>
           <button class="btn small" id="btnSaveLog">Save .txt</button>
           <button class="btn small ghost" id="btnClearLog">Clear</button>
         </div>
       </div>
-      <ol class="log" id="log"><li class="log-empty">Nothing yet — activity appears here while you work.</li></ol>
+      <ol class="log" id="log"><li class="log-empty">Nothing yet. Activity appears here while you work.</li></ol>
     </section>
   </main>
 
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
-  <footer class="muted">Files are saved by your browser into Downloads. Nothing leaves your computer except requests to pesuacademy.com.</footer>
+  <footer class="foot muted">Files are saved by your browser into Downloads. Nothing leaves your computer except requests to pesuacademy.com. · Made by Vismay H S</footer>
 
   <script src="lib/pdf-lib.min.js"></script>
   <script src="lib/fontkit.umd.min.js"></script>
