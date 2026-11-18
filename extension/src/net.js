@@ -50,12 +50,14 @@
         const t = await r.text();
         if (r.ok && /<option/i.test(t)) {
           this.mode = 'direct';
+          this.semestersHtml = t; // the page reuses this instead of asking PESU again
           return this.mode;
         }
       } catch (_) { /* fall through to tab mode */ }
       const r = await this.tabFetch(PESU.urls.semesters());
       if (r.ok && /<option/i.test(r.text || '')) {
         this.mode = 'tab';
+        this.semestersHtml = r.text;
         return this.mode;
       }
       throw new PESU.SessionExpiredError();

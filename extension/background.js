@@ -11,16 +11,31 @@ async function openApp(params) {
   } catch (_) { /* older browser */ }
   const mine = ctx.find((c) => c.tabId >= 0 && (c.documentUrl || '').startsWith(APP_URL));
   if (mine) {
-    try {
-      const t = await chrome.tabs.update(mine.tabId, params ? { active: true, url } : { active: true });
-      await chrome.windows.update(t.windowId, { focused: true });
+    // Just bring it to the front. Never reload it: that would throw away a download in progress.
+    let shown = true;
+    try { await chrome.tabs.update(mine.tabId, { active: true }); } catch (_) { shown = false; /* tab vanished */ }
+    if (shown) {
+      try { await chrome.windows.update(mine.windowId, { focused: true }); } catch (_) { /* focus is best effort */ }
+      if (params && params.course) chrome.runtime.sendMessage({ type: 'select-course', courseId: params.course }).catch(() => {});
       return;
-    } catch (_) { /* tab vanished - open a new one */ }
+    }
   }
   await chrome.tabs.create({ url });
 }
 
 chrome.action.onClicked.addListener(() => openApp());
+
+// After the extension is installed, reloaded or updated, the button in PESU tabs that were already
+// open is disconnected. Put a fresh, working one into each of those tabs - no page refresh needed.
+const PESU_PAGES = ['https://www.pesuacademy.com/Academy/*', 'https://pesuacademy.com/Academy/*'];
+async function refreshPesuButtons() {
+  let tabs = [];
+  try { tabs = await chrome.tabs.query({ url: PESU_PAGES }); } catch (_) { return; }
+  for (const t of tabs) {
+    chrome.scripting.executeScript({ target: { tabId: t.id }, files: ['content.js'] }).catch(() => { /* tab busy or closed */ });
+  }
+}
+chrome.runtime.onInstalled.addListener(refreshPesuButtons);
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg && msg.type === 'open-app') {

@@ -43,6 +43,7 @@ Made by **Vismay H S**
 - [How it works](#how-it-works)
 - [Privacy and permissions](#privacy-and-permissions)
 - [Troubleshooting](#troubleshooting)
+- [Help, ideas and contact](#help-ideas-and-contact)
 - [For developers](#for-developers)
 - [Credits](#credits)
 
@@ -311,6 +312,15 @@ The extension talks **only** to `pesuacademy.com` and its file server `files.pes
 </details>
 
 <details>
+<summary><b>The ⬇ PESU Downloader button on pesuacademy.com doesn't respond</b></summary>
+
+- After you reload or update the extension, the button in already-open PESU tabs is replaced with a fresh one automatically, so it keeps working.
+- If it ever says **↻ Refresh page to use PESU Downloader**, click it once: the page refreshes and the button works again.
+- The toolbar icon (puzzle piece → PESU Downloader) always works too.
+
+</details>
+
+<details>
 <summary><b>Windows: "Python was not found"</b></summary>
 
 Install Python from [python.org](https://www.python.org/downloads/) with **Add to PATH** ticked. The Microsoft Store shortcut doesn't work. Then run `install.bat` again.
@@ -354,7 +364,22 @@ Download the new code (or `git pull`), then press the **reload ↻** button on t
 
 </details>
 
-Still stuck? [Open an issue](https://github.com/VismayHS/Pesu_Merger/issues) with what you did and a screenshot of the **Activity** tab.
+Still stuck? See [Help, ideas and contact](#help-ideas-and-contact).
+
+---
+
+## Help, ideas and contact
+
+Found a bug, or have an idea? You're very welcome to tell me.
+
+| | How |
+|---|---|
+| 🐞 **Something isn't working** | [Open a bug report](https://github.com/VismayHS/Pesu_Merger/issues/new?template=bug_report.yml). Paste the **Activity** log (Activity tab → **Copy**) and say which browser and OS you use. |
+| 💡 **Idea or feature request** | [Suggest a feature](https://github.com/VismayHS/Pesu_Merger/issues/new?template=feature_request.yml) |
+| 🔎 **Already reported?** | [Browse open issues](https://github.com/VismayHS/Pesu_Merger/issues) and add a 👍 to the ones that affect you |
+| ✉️ **Prefer email?** | Write to **[vismayhs@gmail.com](mailto:vismayhs@gmail.com)** |
+
+Opening an issue needs a free GitHub account. Please never share your PESU password or SRN in an issue.
 
 ---
 

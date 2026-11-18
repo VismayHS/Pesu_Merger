@@ -584,7 +584,29 @@ function stopSessionWatch() {
 }
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg && msg.type === 'pesu-page' && msg.loggedIn && (watchTimer || !Net.mode)) setTimeout(sessionProbe, 300);
+  if (msg && msg.type === 'select-course' && msg.courseId) selectCourseFromPesu(String(msg.courseId));
 });
+
+/** The "PESU Downloader" button on a course page was pressed while this page was already open. */
+async function selectCourseFromPesu(id) {
+  if (state.running) { toast('A download is running. Wait for it to finish, or press Cancel first.', 'warn', 4500); return; }
+  switchTab('download');
+  if (state.selectedCourses.has(id) && state.scanned.has(id)) return; // already there
+  const here = state.courses.find((c) => c.id === id);
+  if (here) {
+    state.selectedCourses.add(id);
+    renderCourses();
+    $('#stepCourses').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scan();
+    return;
+  }
+  if (!state.semesters.length) { state.preselect = id; return; } // still starting up: loadSemesters picks it up
+  state.preselect = id;
+  const semId = await findSemesterOf(id);
+  if (semId == null) { state.preselect = null; toast('That course was not found in your semesters.', 'warn'); return; }
+  $('#semester').value = semId;
+  await loadCourses(semId);
+}
 
 async function onLoginContinue() {
   const btn = $('#btnLoginRetry');
@@ -624,7 +646,10 @@ async function checkHelper() {
 // ------------------------------------------------------------------ semesters / courses
 async function loadSemesters() {
   try {
-    const t = await withSession(() => Net.text(PESU.urls.semesters()));
+    // the session check already fetched this list - reuse it (one round trip to PESU fewer)
+    const cached = Net.semestersHtml;
+    Net.semestersHtml = null;
+    const t = cached || await withSession(() => Net.text(PESU.urls.semesters()));
     state.semesters = PESU.parseSemesters(t);
   } catch (e) {
     log('error', 'Could not load semesters: ' + e.message);
@@ -636,13 +661,21 @@ async function loadSemesters() {
   sel.disabled = false;
   let semId = state.settings.semesterId && state.semesters.some((s) => s.id === state.settings.semesterId) ? state.settings.semesterId : state.semesters[0] && state.semesters[0].id;
   if (state.preselect) {
-    for (const s of state.semesters) {
-      const courses = await fetchCourses(s.id).catch(() => []);
-      if (courses.some((c) => c.id === state.preselect)) { semId = s.id; break; }
-    }
+    const found = await findSemesterOf(state.preselect, semId);
+    if (found != null) semId = found;
   }
   sel.value = semId;
   await loadCourses(semId);
+}
+
+/** Which semester holds this course? Checks the likely one first, then the rest at the same time. */
+async function findSemesterOf(courseId, first = state.settings.semesterId || (state.semesters[0] && state.semesters[0].id)) {
+  const has = async (semId) => (await fetchCourses(semId).catch(() => [])).some((c) => c.id === courseId);
+  if (first != null && await has(first)) return first;
+  const rest = state.semesters.map((s) => s.id).filter((x) => x !== first);
+  const hits = await Promise.all(rest.map(async (semId) => ((await has(semId)) ? semId : null)));
+  const hit = hits.find((x) => x != null);
+  return hit == null ? null : hit;
 }
 
 const courseCache = new Map();
@@ -1060,8 +1093,31 @@ function renderStats() {
   lastStats = vals;
 }
 
+/** The PDF engine (about 1.3 MB of script) loads after the page is up, so opening the page stays instant. */
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const el = document.createElement('script');
+    el.src = src;
+    el.onload = () => resolve();
+    el.onerror = () => reject(new Error('could not load ' + src));
+    document.body.appendChild(el);
+  });
+}
+let pdfEngine = null;
+function ensurePdfEngine() {
+  if (!pdfEngine) {
+    pdfEngine = (async () => {
+      if (!self.PDFLib) await loadScript('lib/pdf-lib.min.js');
+      if (!self.fontkit) await loadScript('lib/fontkit.umd.min.js');
+      if (!self.PDFX) await loadScript('src/pdf.js');
+    })();
+    pdfEngine.catch(() => { pdfEngine = null; }); // allow a retry
+  }
+  return pdfEngine;
+}
 async function ensureFonts() {
   if (ensureFonts.done) return;
+  await ensurePdfEngine();
   const get = async (f) => new Uint8Array(await (await fetch(chrome.runtime.getURL('fonts/' + f))).arrayBuffer());
   PDFX.setFonts({ regular: await get('DejaVuSans.ttf'), bold: await get('DejaVuSans-Bold.ttf'), mono: await get('DejaVuSansMono.ttf') });
   ensureFonts.done = true;
@@ -1744,6 +1800,8 @@ function wireTheme() {
   renderCats();
   updatePlan();
   checkHelper();
+  // warm up the PDF engine once the page is idle, so Start doesn't wait for it later
+  (self.requestIdleCallback || ((f) => setTimeout(f, 1500)))(() => ensurePdfEngine().catch(() => {}), { timeout: 4000 });
   if (await connectSession()) await loadSemesters();
   else {
     $('#courseList').innerHTML = '<div class="empty">Log in to PESU Academy in this browser — your courses appear here automatically.</div>';

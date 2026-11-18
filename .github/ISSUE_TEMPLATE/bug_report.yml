@@ -1,0 +1,41 @@
+name: Something isn't working
+description: Report a problem with PESU Downloader
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please **don't** paste your PESU password or anything private.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+      placeholder: I picked Unit 2 Slides and pressed Start, but…
+    validations:
+      required: true
+  - type: textarea
+    id: activity
+    attributes:
+      label: Activity log
+      description: Open the **Activity** tab, press **Copy**, and paste it here. Screenshots are welcome too.
+      render: text
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [Windows, macOS, Linux]
+    validations:
+      required: true
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options: [Brave, Chrome, Edge, Vivaldi, Arc, Chromium, Other]
+    validations:
+      required: true
+  - type: dropdown
+    id: helper
+    attributes:
+      label: What does the top-right corner say about the converter?
+      options: ["Converter: MS Office", "Converter: LibreOffice", "Converter: MS Office + LibreOffice", Converter not installed, Not sure]
