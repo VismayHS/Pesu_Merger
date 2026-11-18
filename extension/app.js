@@ -27,12 +27,12 @@ const svg = (k) => `<svg viewBox="0 0 24 24">${ICON[k] || ICON.file}</svg>`;
 // ------------------------------------------------------------------ settings
 const NAMING_DEFAULTS = {
   course: '{code} - {course}',
-  'merged:unit-category': 'Unit {unit} - {category}',
+  'merged:unit-category': 'Unit{unit}_Content/Unit {unit} - {category}',
   'merged:category': '{category} - {units}',
-  'merged:unit': 'Unit {unit} - Complete',
+  'merged:unit': 'Unit{unit}_Content/Unit {unit} - Complete',
   'merged:all': '{code} - Complete ({units})',
-  file: 'Files/Unit {unit} - {unit_name}/{category}/{class_no} - {name}',
-  mcq: 'MCQs/Unit {unit} - MCQs',
+  file: 'Unit{unit}_Content/Files/{category}/{class_no} - {name}',
+  mcq: 'Unit{unit}_Content/MCQs/Unit {unit} - MCQs',
 };
 // Friendly naming choices (no templates shown to the user). Folders are always automatic.
 const NAME_STYLES = {
@@ -42,7 +42,10 @@ const NAME_STYLES = {
 };
 const NAMING_CHOICE_DEFAULTS = { course: 'codeName', merged: 'short', file: 'numbered' };
 const MERGED_BASE = { 'unit-category': 'Unit {unit} - {category}', category: '{category} - {units}', unit: 'Unit {unit} - Complete', all: 'Complete ({units})' };
-const FILE_DIR = 'Files/Unit {unit} - {unit_name}/{category}/';
+// Everything that belongs to one unit goes into <Course>/Unit<N>_Content/
+const UNIT_DIR = 'Unit{unit}_Content/';
+const FILE_DIR = UNIT_DIR + 'Files/{category}/';
+const UNIT_SCOPED = new Set(['unit-category', 'unit']); // merge modes that produce one file per unit
 const styleTpl = (kind, id) => (NAME_STYLES[kind].find((x) => x[0] === id) || NAME_STYLES[kind][0])[1];
 const MODES = [
   { v: 'unit-category', t: 'Per unit, per category', d: 'Unit 1 - Slides, Unit 1 - Notes…', art: [[10, 34], [10, 22], [10, 40], [10, 28], [10, 18], [10, 30]] },
@@ -225,7 +228,7 @@ function tplFor(key, choices = state.settings.naming) {
   if (key.startsWith('merged:')) {
     const mode = key.slice(7);
     if (mode === 'all' && choices.merged === 'short') return '{code} - ' + MERGED_BASE.all;
-    return styleTpl('merged', choices.merged) + MERGED_BASE[mode];
+    return (UNIT_SCOPED.has(mode) ? UNIT_DIR : '') + styleTpl('merged', choices.merged) + MERGED_BASE[mode];
   }
   return NAMING_DEFAULTS[key];
 }
@@ -321,7 +324,7 @@ function renderNaming() {
       b.setAttribute('aria-checked', String(s.naming[kind] === id));
       b.innerHTML = '<span class="radio"></span><span class="ex"></span>';
       // separate files: show only the file name; the folder part is automatic
-      b.querySelector('.ex').textContent = (kind === 'file' ? ex.split('/').pop() : ex) + suffix;
+      b.querySelector('.ex').textContent = (kind === 'course' ? ex : ex.split('/').pop()) + suffix;
       b.title = ex + suffix;
       b.addEventListener('click', () => {
         s.naming[kind] = id;
@@ -336,7 +339,7 @@ function renderNaming() {
   }
   const foot = document.createElement('p');
   foot.className = 'muted small nfoot';
-  foot.textContent = 'Folders are organised automatically: one folder per course, with MCQs and separate files in their own sub-folders.';
+  foot.textContent = 'Folders are automatic: one folder per course, and inside it a Unit1_Content, Unit2_Content… folder holding that unit\'s PDFs, MCQs and separate files.';
   list.appendChild(foot);
 }
 function exampleFor(key, choices) {

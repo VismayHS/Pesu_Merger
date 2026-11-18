@@ -79,7 +79,7 @@ After it finishes, press **Re-check** on the extension page, or restart the brow
   - PDF (answers marked, as a key at the end, or hidden)
   - an interactive practice page (`.html`)
   - Markdown and JSON
-- **Pick a naming style.** Under **File names**, choose how course folders, merged PDFs and separate files are named. Each option shows the real name you'll get. Folders are organised automatically.
+- **Pick a naming style.** Under **File names**, choose how course folders, merged PDFs and separate files are named. Each option shows the real name you'll get. Folders are organised automatically, with one `UnitN_Content` folder per unit.
 - **No duplicates.**
   - Material shared across a whole unit is downloaded once.
   - Identical files uploaded under different classes are detected by content (SHA-256) and kept once.
@@ -97,11 +97,14 @@ Output (default names):
 ```
 Downloads/PESU Academy/
   UE24AM342AA5 - ML System Design and AgentOps/
-    Unit 1 - Slides.pdf
-    Unit 1 - Notes.pdf
-    Unit 1 - Question Bank.pdf
-    MCQs/Unit 1 - MCQs.pdf | .html | .md
-    Files/Unit 1 - .../Slides/01 - Introduction ....pdf   (only if "keep every file separately" is on)
+    Unit1_Content/
+      Unit 1 - Slides.pdf
+      Unit 1 - Notes.pdf
+      Unit 1 - Question Bank.pdf
+      MCQs/Unit 1 - MCQs.pdf | .html | .md
+      Files/Slides/01 - Introduction ....pdf   (only if "keep every file separately" is on)
+    Unit2_Content/
+      ...
     _Report.txt
 ```
 
