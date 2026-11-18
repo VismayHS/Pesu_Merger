@@ -141,8 +141,26 @@ h3.sub:first-child { margin-top: 0; }
 .btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
 .btn.ghost:hover:not(:disabled) { color: var(--accent); background: var(--accent-weak); box-shadow: none; }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
-.btn.loading svg { animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+/* Working state: the icon is swapped for three softly pulsing dots, with a light sweep across the button */
+.btn.loading { position: relative; overflow: hidden; }
+.btn.loading svg { display: none; }
+.btn.loading::before {
+  content: ""; flex: none; width: 6px; height: 6px; margin: 0 12px; border-radius: 50%;
+  --dim: color-mix(in srgb, currentColor 28%, transparent);
+  animation: dots 1.05s infinite ease-in-out;
+}
+.btn.loading::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .22) 50%, transparent 70%);
+  transform: translateX(-100%); animation: sweep 1.8s infinite ease-in-out;
+}
+@keyframes dots {
+  0%, 100% { background: var(--dim); box-shadow: -10px 0 currentColor, 10px 0 var(--dim); }
+  33% { background: currentColor; box-shadow: -10px 0 var(--dim), 10px 0 var(--dim); }
+  66% { background: var(--dim); box-shadow: -10px 0 var(--dim), 10px 0 currentColor; }
+}
+@keyframes sweep { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .btn.loading::before, .btn.loading::after { animation: none; } }
 
 select, input[type="text"], input[type="search"] { font: inherit; font-size: 13.5px; padding: 8px 11px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--card-solid); color: var(--text); transition: border-color .2s, box-shadow .2s; min-width: 0; }
 select:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent); }
