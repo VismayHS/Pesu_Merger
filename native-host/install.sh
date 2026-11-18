@@ -6,6 +6,7 @@
 set -euo pipefail
 
 EXT_ID="${1:-cooigkfjkkbolfcfcdmbmdjpmbmlofab}"
+FIREFOX_ID="pesu-downloader@vismayhs"
 HOST_NAME="com.pesu.downloader"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -87,6 +88,22 @@ for d in "${DIRS[@]}"; do
   fi
 done
 printf '%s\n' "$MANIFEST_JSON" > "$HERE/$HOST_NAME.json"
+
+# Firefox: identifies extensions by add-on id ("allowed_extensions") and has its own folder
+FF_JSON=$(cat <<EOF
+{
+  "name": "$HOST_NAME",
+  "description": "PESU Downloader converter helper",
+  "path": "$(esc "$LAUNCHER")",
+  "type": "stdio",
+  "allowed_extensions": ["$FIREFOX_ID"]
+}
+EOF
+)
+if [ "$(uname -s)" = "Darwin" ]; then FF_DIR="$HOME/Library/Application Support/Mozilla/NativeMessagingHosts"; else FF_DIR="$HOME/.mozilla/native-messaging-hosts"; fi
+mkdir -p "$FF_DIR"
+printf '%s\n' "$FF_JSON" > "$FF_DIR/$HOST_NAME.json"
+echo "  Registered:  $FF_DIR (Firefox)"
 
 # 5. Self-test: start the helper and ask it what it can do
 INFO="$("$PY" - "$LAUNCHER" <<'PYEOF' 2>/dev/null || true

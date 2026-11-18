@@ -1,6 +1,6 @@
 # Registers the PESU Downloader converter helper (native messaging host) for the current user.
 # No admin rights needed. Safe to run again at any time (e.g. after moving the folder).
-param([string]$ExtensionId = 'cooigkfjkkbolfcfcdmbmdjpmbmlofab')
+param([string]$ExtensionId = 'cooigkfjkkbolfcfcdmbmdjpmbmlofab', [string]$FirefoxId = 'pesu-downloader@vismayhs')
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $hostName = 'com.pesu.downloader'
@@ -43,6 +43,16 @@ $manifest = [ordered]@{
 }
 ($manifest | ConvertTo-Json) | Set-Content -Path $manifestPath -Encoding UTF8
 Write-Host "  Manifest:    $manifestPath"
+# Firefox identifies extensions by their add-on id instead of an origin, so it gets its own manifest
+$ffManifestPath = Join-Path $here "$hostName.firefox.json"
+$ffManifest = [ordered]@{
+    name               = $hostName
+    description        = 'PESU Downloader converter helper'
+    path               = $bat
+    type               = 'stdio'
+    allowed_extensions = @($FirefoxId)
+}
+($ffManifest | ConvertTo-Json) | Set-Content -Path $ffManifestPath -Encoding UTF8
 
 # 4. Register for every Chromium browser we know about (HKCU, no admin)
 $browsers = @(
@@ -57,7 +67,10 @@ foreach ($b in $browsers) {
     New-Item -Path $key -Force | Out-Null
     Set-ItemProperty -Path $key -Name '(default)' -Value $manifestPath
 }
-Write-Host "  Registered for Chrome, Brave, Edge, Chromium, Vivaldi"
+$ffKey = "HKCU:\Software\Mozilla\NativeMessagingHosts\$hostName"
+New-Item -Path $ffKey -Force | Out-Null
+Set-ItemProperty -Path $ffKey -Name '(default)' -Value $ffManifestPath
+Write-Host "  Registered for Chrome, Brave, Edge, Chromium, Vivaldi and Firefox"
 
 # 5. Report available converters
 $office = @('PowerPoint.Application', 'Word.Application', 'Excel.Application') | Where-Object { Test-Path "Registry::HKEY_CLASSES_ROOT\$_\CLSID" }

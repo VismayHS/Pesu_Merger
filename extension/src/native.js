@@ -19,10 +19,10 @@
 
     _connect() {
       if (this.port) return this.port;
-      const port = chrome.runtime.connectNative(HOST);
+      const port = ext.runtime.connectNative(HOST);
       port.onMessage.addListener((m) => this._onMessage(m));
       port.onDisconnect.addListener(() => {
-        const err = (chrome.runtime.lastError && chrome.runtime.lastError.message) || 'Converter helper disconnected';
+        const err = (ext.runtime.lastError && ext.runtime.lastError.message) || 'Converter helper disconnected';
         this.lastError = err;
         if (this.port === port) this.port = null;
         for (const p of this.pending.values()) {

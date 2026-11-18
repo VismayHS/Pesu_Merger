@@ -159,7 +159,7 @@ function setRunning(on) {
 // ------------------------------------------------------------------ settings
 async function loadSettings() {
   try {
-    const { settings } = await chrome.storage.local.get('settings');
+    const { settings } = await ext.storage.local.get('settings');
     if (settings) {
       state.settings = {
         ...structuredClone(DEFAULTS), ...settings,
@@ -182,7 +182,7 @@ function cleanNaming(n) {
   return out;
 }
 function saveSettings() {
-  chrome.storage.local.set({ settings: state.settings }).catch(() => {});
+  ext.storage.local.set({ settings: state.settings }).catch(() => {});
 }
 
 // ------------------------------------------------------------------ naming
@@ -582,7 +582,7 @@ function stopSessionWatch() {
   watchTimer = null;
   document.title = baseTitle;
 }
-chrome.runtime.onMessage.addListener((msg) => {
+ext.runtime.onMessage.addListener((msg) => {
   if (msg && msg.type === 'pesu-page' && msg.loggedIn && (watchTimer || !Net.mode)) setTimeout(sessionProbe, 300);
   if (msg && msg.type === 'select-course' && msg.courseId) selectCourseFromPesu(String(msg.courseId));
 });
@@ -1129,12 +1129,12 @@ function ensurePdfEngine() {
 async function ensureFonts() {
   if (ensureFonts.done) return;
   await ensurePdfEngine();
-  const get = async (f) => new Uint8Array(await (await fetch(chrome.runtime.getURL('fonts/' + f))).arrayBuffer());
+  const get = async (f) => new Uint8Array(await (await fetch(ext.runtime.getURL('fonts/' + f))).arrayBuffer());
   PDFX.setFonts({ regular: await get('DejaVuSans.ttf'), bold: await get('DejaVuSans-Bold.ttf'), mono: await get('DejaVuSansMono.ttf') });
   ensureFonts.done = true;
 }
 
-// --- saving through chrome.downloads
+// --- saving through ext.downloads
 function splitExt(name) {
   const m = name.match(/^(.*?)(\.[a-z0-9]{1,5})?$/i);
   return [m[1], m[2] || ''];
@@ -1160,15 +1160,15 @@ function uniquePath(rel) {
 function waitDownload(id) {
   return new Promise((resolve, reject) => {
     let done = false;
-    const finish = (fn, v) => { if (done) return; done = true; chrome.downloads.onChanged.removeListener(on); clearTimeout(t); fn(v); };
+    const finish = (fn, v) => { if (done) return; done = true; ext.downloads.onChanged.removeListener(on); clearTimeout(t); fn(v); };
     const on = (d) => {
       if (d.id !== id || !d.state) return;
       if (d.state.current === 'complete') finish(resolve, id);
-      if (d.state.current === 'interrupted') chrome.downloads.search({ id }).then(([it]) => finish(reject, new Error('Save failed: ' + ((it && it.error) || 'interrupted'))));
+      if (d.state.current === 'interrupted') ext.downloads.search({ id }).then(([it]) => finish(reject, new Error('Save failed: ' + ((it && it.error) || 'interrupted'))));
     };
     const t = setTimeout(() => finish(reject, new Error('Save timed out')), 10 * 60 * 1000);
-    chrome.downloads.onChanged.addListener(on);
-    chrome.downloads.search({ id }).then(([it]) => {
+    ext.downloads.onChanged.addListener(on);
+    ext.downloads.search({ id }).then(([it]) => {
       if (it && it.state === 'complete') finish(resolve, id);
       else if (it && it.state === 'interrupted') finish(reject, new Error('Save failed: ' + (it.error || 'interrupted')));
     });
@@ -1182,10 +1182,8 @@ function saveFile(base, rel, data, mime, headline) {
     const blob = data instanceof Blob ? data : new Blob([data], { type: mime || 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     try {
-      const id = await new Promise((res, rej) => chrome.downloads.download({ url, filename, conflictAction: 'overwrite', saveAs: false }, (i) => {
-        if (chrome.runtime.lastError || i == null) rej(new Error(chrome.runtime.lastError ? chrome.runtime.lastError.message : 'download failed'));
-        else res(i);
-      }));
+      const id = await ext.downloads.download({ url, filename, conflictAction: 'overwrite', saveAs: false });
+      if (id == null) throw new Error('download failed');
       await waitDownload(id);
       const j = state.job;
       j.stats.saved++;
@@ -1242,7 +1240,7 @@ async function startJob() {
   window.onbeforeunload = () => 'A download is in progress.';
   let uiDisabled = false;
   try {
-    await chrome.downloads.setUiOptions({ enabled: false });
+    if (ext.downloads.setUiOptions) await ext.downloads.setUiOptions({ enabled: false });
     uiDisabled = true;
   } catch (_) { /* not supported */ }
   let outcome = 'ok';
@@ -1265,7 +1263,7 @@ async function startJob() {
       console.error(e);
     }
   } finally {
-    if (uiDisabled) chrome.downloads.setUiOptions({ enabled: true }).catch(() => {});
+    if (uiDisabled && ext.downloads.setUiOptions) ext.downloads.setUiOptions({ enabled: true }).catch(() => {});
     window.onbeforeunload = null;
     setRunning(false);
     showResult(outcome);
@@ -1303,7 +1301,7 @@ function showResult(outcome) {
     </div>`;
   box.classList.remove('hidden');
   const of = $('#btnOpenFolder');
-  if (of) of.onclick = () => chrome.downloads.show((j.headline[0] && j.headline[0].id) || j.lastDownloadId);
+  if (of) of.onclick = () => ext.downloads.show((j.headline[0] && j.headline[0].id) || j.lastDownloadId);
   const sp = $('#btnShowProblems');
   if (sp) sp.onclick = () => { setLogFilter('problems'); switchTab('activity'); };
   toast(title, outcome === 'ok' ? (probs ? 'warn' : 'ok') : 'bad', 5000);
@@ -1742,10 +1740,10 @@ function wire() {
   $('#btnOpenPesu').addEventListener('click', async () => {
     const t = await Net.findPesuTab();
     if (t) {
-      await chrome.tabs.update(t.id, { active: true });
-      await chrome.windows.update(t.windowId, { focused: true });
+      await ext.tabs.update(t.id, { active: true });
+      await ext.windows.update(t.windowId, { focused: true });
     } else {
-      const nt = await chrome.tabs.create({ url: PESU.ORIGIN + '/Academy/', active: true });
+      const nt = await ext.tabs.create({ url: PESU.ORIGIN + '/Academy/', active: true });
       Net.tabId = nt.id;
     }
   });
@@ -1759,10 +1757,9 @@ function wire() {
   $('#btnCopyLog').addEventListener('click', () => navigator.clipboard.writeText(logText()).then(() => toast('Log copied', 'ok')).catch(() => toast('Could not copy', 'bad')));
   $('#btnSaveLog').addEventListener('click', () => {
     const url = URL.createObjectURL(new Blob([logText()], { type: 'text/plain' }));
-    chrome.downloads.download({ url, filename: `${U.safeName(state.settings.rootFolder, 40)}/PESU Downloader log ${today()}.txt`, saveAs: false, conflictAction: 'uniquify' }, () => {
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
-      toast('Log saved to Downloads', 'ok');
-    });
+    ext.downloads.download({ url, filename: `${U.safeName(state.settings.rootFolder, 40)}/PESU Downloader log ${today()}.txt`, saveAs: false, conflictAction: 'uniquify' })
+      .then(() => toast('Log saved to Downloads', 'ok'), (e) => toast('Could not save the log: ' + e.message, 'bad'))
+      .finally(() => setTimeout(() => URL.revokeObjectURL(url), 10000));
   });
   $('#btnClearLog').addEventListener('click', () => {
     $('#log').innerHTML = '<li class="log-empty">Log cleared.</li>';
@@ -1800,6 +1797,32 @@ function wireTheme() {
   paintThemeButton();
 }
 
+// Firefox has no runtime.getContexts: the background script asks open pages where they are instead.
+ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (!msg || msg.type !== 'where-are-you') return false;
+  ext.tabs.getCurrent().then((t) => sendResponse(t ? { tabId: t.id, windowId: t.windowId } : null), () => sendResponse(null));
+  return true;
+});
+
+// Firefox lets people turn site access off (or asks before granting it). Without it nothing can work,
+// so ask for it clearly instead of failing with confusing network errors.
+const PESU_ORIGINS = ['https://www.pesuacademy.com/*', 'https://pesuacademy.com/*', 'https://files.pesuacademy.com/*'];
+async function ensureSiteAccess() {
+  let ok = true;
+  try { ok = await ext.permissions.contains({ origins: PESU_ORIGINS }); } catch (_) { return; }
+  if (ok) return;
+  pill('#chipSession', 'warn', 'Needs access to pesuacademy.com');
+  $('#accessBanner').classList.remove('hidden');
+  await new Promise((resolve) => {
+    $('#btnGrantAccess').addEventListener('click', async () => {
+      let granted = false;
+      try { granted = await ext.permissions.request({ origins: PESU_ORIGINS }); } catch (_) { /* dismissed */ }
+      if (granted) { $('#accessBanner').classList.add('hidden'); resolve(); }
+      else toast('Access is needed to read your courses on pesuacademy.com', 'warn');
+    });
+  });
+}
+
 (async function main() {
   FX.reveal($('#heroTitle'));
   await loadSettings();
@@ -1813,6 +1836,7 @@ function wireTheme() {
   checkHelper();
   // warm up the PDF engine once the page is idle, so Start doesn't wait for it later
   (self.requestIdleCallback || ((f) => setTimeout(f, 1500)))(() => ensurePdfEngine().catch(() => {}), { timeout: 4000 });
+  await ensureSiteAccess();
   if (await connectSession()) await loadSemesters();
   else {
     $('#courseList').innerHTML = '<div class="empty">Log in to PESU Academy in this browser — your courses appear here automatically.</div>';

@@ -34,6 +34,14 @@
   </header>
 
   <div class="banners">
+    <div class="banner hidden" id="accessBanner">
+      <svg class="banner-icon" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6z"/><path d="m9 12 2 2 4-4"/></svg>
+      <div class="banner-text">
+        <strong>Allow access to pesuacademy.com</strong>
+        <span>Your browser asks before letting an extension read a website. PESU Downloader only ever reads pesuacademy.com.</span>
+      </div>
+      <div class="row"><button class="btn primary" id="btnGrantAccess">Allow access</button></div>
+    </div>
     <div class="banner hidden" id="loginBanner">
       <svg class="banner-icon" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
       <div class="banner-text">
@@ -226,6 +234,7 @@
     <strong class="credit">Made by Vismay H S</strong>
   </footer>
 
+  <script src="src/ext.js"></script>
   <script src="src/util.js"></script>
   <script src="src/pesu.js"></script>
   <script src="src/mcq.js"></script>

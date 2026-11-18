@@ -7,7 +7,7 @@
  *   1. direct fetch of /referenceMeterials/... (follows the redirect to the signed CDN URL).
  *   2. trigger the request inside the PESU tab, capture the signed CDN redirect with webRequest,
  *      then fetch the signed URL from the extension (no cookies needed for it).
- *   3. (caller) let the browser's own downloader fetch it (chrome.downloads) - see Net.browserDownload.
+ *   3. (caller) let the browser's own downloader fetch it (ext.downloads) - see Net.browserDownload.
  */
 (function (global) {
   'use strict';
@@ -21,7 +21,7 @@
   function waitTabComplete(tabId, timeout = 45000) {
     return new Promise((resolve) => {
       const done = () => {
-        chrome.tabs.onUpdated.removeListener(onUpd);
+        ext.tabs.onUpdated.removeListener(onUpd);
         clearTimeout(t);
         resolve();
       };
@@ -29,8 +29,8 @@
         if (id === tabId && info.status === 'complete') done();
       };
       const t = setTimeout(done, timeout);
-      chrome.tabs.onUpdated.addListener(onUpd);
-      chrome.tabs.get(tabId).then((tab) => { if (tab && tab.status === 'complete') done(); }).catch(done);
+      ext.tabs.onUpdated.addListener(onUpd);
+      ext.tabs.get(tabId).then((tab) => { if (tab && tab.status === 'complete') done(); }).catch(done);
     });
   }
 
@@ -66,12 +66,12 @@
     async findPesuTab() {
       if (this.tabId != null) {
         try {
-          const t = await chrome.tabs.get(this.tabId);
+          const t = await ext.tabs.get(this.tabId);
           if (t && /^https:\/\/(www\.)?pesuacademy\.com\//.test(t.url || t.pendingUrl || '')) return t;
         } catch (_) { /* closed */ }
         this.tabId = null;
       }
-      const tabs = await chrome.tabs.query({ url: PESU_TAB_PATTERNS });
+      const tabs = await ext.tabs.query({ url: PESU_TAB_PATTERNS });
       const t = tabs.find((x) => x.status === 'complete') || tabs[0];
       if (t) this.tabId = t.id;
       return t || null;
@@ -80,7 +80,7 @@
     async ensureTab() {
       let t = await this.findPesuTab();
       if (!t) {
-        t = await chrome.tabs.create({ url: ORIGIN + '/Academy/', active: false });
+        t = await ext.tabs.create({ url: ORIGIN + '/Academy/', active: false });
         this.tabId = t.id;
         await waitTabComplete(t.id);
         this.log('info', 'Opened a background PESU Academy tab to use your login session.');
@@ -94,7 +94,7 @@
       const tab = await this.ensureTab();
       let res;
       try {
-        [res] = await chrome.scripting.executeScript({
+        [res] = await ext.scripting.executeScript({
           target: { tabId: tab.id },
           func: async (url) => {
             try {
@@ -202,9 +202,9 @@
           if (settled) return;
           settled = true;
           clearTimeout(timer);
-          chrome.webRequest.onBeforeRedirect.removeListener(onRedirect);
-          chrome.webRequest.onCompleted.removeListener(onCompleted);
-          chrome.webRequest.onErrorOccurred.removeListener(onError);
+          ext.webRequest.onBeforeRedirect.removeListener(onRedirect);
+          ext.webRequest.onCompleted.removeListener(onCompleted);
+          ext.webRequest.onErrorOccurred.removeListener(onError);
           fn(v);
         };
         const mine = (d) => d.url.toLowerCase().includes(id) && d.tabId === tab.id;
@@ -218,10 +218,10 @@
         };
         const onError = (d) => { if (mine(d) && !/ABORTED/i.test(d.error)) finish(reject, err('Request failed: ' + d.error, true)); };
         const timer = setTimeout(() => finish(reject, err('Timed out waiting for the file link', true)), 30000);
-        chrome.webRequest.onBeforeRedirect.addListener(onRedirect, filter);
-        chrome.webRequest.onCompleted.addListener(onCompleted, filter);
-        chrome.webRequest.onErrorOccurred.addListener(onError, filter);
-        chrome.scripting.executeScript({
+        ext.webRequest.onBeforeRedirect.addListener(onRedirect, filter);
+        ext.webRequest.onCompleted.addListener(onCompleted, filter);
+        ext.webRequest.onErrorOccurred.addListener(onError, filter);
+        ext.scripting.executeScript({
           target: { tabId: tab.id },
           func: (u) => {
             const c = new AbortController();
@@ -248,16 +248,16 @@
         let dlId = null;
         let settled = false;
         const onDetermine = (item, suggest) => {
-          if (item.byExtensionId !== chrome.runtime.id || (item.id !== dlId && item.url !== url)) {
+          if (item.byExtensionId !== ext.runtime.id || (item.id !== dlId && item.url !== url)) {
             suggest();
             return;
           }
-          const ext = U.extOf(item.filename) || 'bin';
-          suggest({ filename: relBase + '.' + ext, conflictAction: 'overwrite' });
+          const fext = U.extOf(item.filename) || 'bin';
+          suggest({ filename: relBase + '.' + fext, conflictAction: 'overwrite' });
         };
         const cleanup = () => {
-          chrome.downloads.onDeterminingFilename.removeListener(onDetermine);
-          chrome.downloads.onChanged.removeListener(onChanged);
+          if (ext.downloads.onDeterminingFilename) ext.downloads.onDeterminingFilename.removeListener(onDetermine);
+          ext.downloads.onChanged.removeListener(onChanged);
           clearTimeout(timer);
         };
         const finish = (fn, v) => {
@@ -269,23 +269,22 @@
         const onChanged = async (delta) => {
           if (delta.id !== dlId || !delta.state) return;
           if (delta.state.current === 'complete') {
-            const [item] = await chrome.downloads.search({ id: dlId });
+            const [item] = await ext.downloads.search({ id: dlId });
             finish(resolve, { id: dlId, filename: item && item.filename, mime: item && item.mime });
           } else if (delta.state.current === 'interrupted') {
-            const [item] = await chrome.downloads.search({ id: dlId });
+            const [item] = await ext.downloads.search({ id: dlId });
             finish(reject, err('Browser download failed: ' + ((item && item.error) || 'interrupted'), false));
           }
         };
         const timer = setTimeout(() => finish(reject, err('Browser download timed out', false)), 10 * 60 * 1000);
-        chrome.downloads.onDeterminingFilename.addListener(onDetermine);
-        chrome.downloads.onChanged.addListener(onChanged);
-        chrome.downloads.download({ url, saveAs: false, conflictAction: 'overwrite' }, (id) => {
-          if (chrome.runtime.lastError || id == null) {
-            finish(reject, err('Browser download failed: ' + (chrome.runtime.lastError ? chrome.runtime.lastError.message : 'unknown'), false));
-            return;
-          }
+        // Chrome lets us pick the name once the server's file type is known. Firefox has no such hook,
+        // so there the file keeps the name the server gives it.
+        if (ext.downloads.onDeterminingFilename) ext.downloads.onDeterminingFilename.addListener(onDetermine);
+        ext.downloads.onChanged.addListener(onChanged);
+        Promise.resolve(ext.downloads.download({ url, saveAs: false, conflictAction: 'overwrite' })).then((id) => {
+          if (id == null) throw new Error('unknown');
           dlId = id;
-        });
+        }).catch((e) => finish(reject, err('Browser download failed: ' + (e && e.message ? e.message : 'unknown'), false)));
       });
     },
   };

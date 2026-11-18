@@ -3,6 +3,7 @@
 // PESU tabs that are already open: the new copy replaces the old (disconnected) button, so the
 // button keeps working without refreshing the page.
 (function () {
+  const ext = (typeof browser !== 'undefined' && browser.runtime && browser.runtime.id ? browser : chrome);
   const BTN_ID = 'pesu-downloader-btn';
   // Always replace: the newest copy of this script is the one that's connected to the extension.
   document.querySelectorAll('#' + BTN_ID).forEach((el) => el.remove());
@@ -24,7 +25,7 @@
   // After the extension is reloaded or updated, scripts in tabs that were already open lose their
   // connection to it. Clicking would then do nothing, so say so and offer a page refresh instead.
   const alive = () => {
-    try { return !!(chrome.runtime && chrome.runtime.id); } catch (_) { return false; }
+    try { return !!(ext.runtime && ext.runtime.id); } catch (_) { return false; }
   };
   let stale = false;
   function markStale() {
@@ -56,11 +57,10 @@
     const done = () => { busy = false; btn.textContent = LABEL; };
     const timer = setTimeout(done, 4000);
     try {
-      chrome.runtime.sendMessage({ type: 'open-app', courseId: courseIdOnPage() }, () => {
-        void chrome.runtime.lastError; // a sleeping background worker is woken up by the message itself
-        clearTimeout(timer);
-        done();
-      });
+      // a sleeping background script is woken up by the message itself
+      Promise.resolve(ext.runtime.sendMessage({ type: 'open-app', courseId: courseIdOnPage() }))
+        .catch(() => {})
+        .finally(() => { clearTimeout(timer); done(); });
     } catch (_) {
       clearTimeout(timer);
       busy = false;
@@ -75,7 +75,7 @@
     if (!alive()) return;
     try {
       const loggedIn = !document.querySelector('input[type="password"]');
-      chrome.runtime.sendMessage({ type: 'pesu-page', loggedIn }).catch(() => {});
+      ext.runtime.sendMessage({ type: 'pesu-page', loggedIn }).catch(() => {});
     } catch (_) { /* extension reloaded */ }
   };
   if (document.readyState === 'complete') ping();
