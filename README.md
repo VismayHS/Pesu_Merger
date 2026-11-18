@@ -31,11 +31,13 @@ Made by **Vismay H S**
 
 - [What you get](#what-you-get)
 - [Before you start](#before-you-start)
-- [Install (5 minutes)](#install-5-minutes)
-  - [1. Download the code](#1-download-the-code)
-  - [2. Add the extension to your browser](#2-add-the-extension-to-your-browser)
+- [Install (about 15 minutes)](#install-about-15-minutes)
+  - [1. Install Python and Office or LibreOffice](#1-install-python-and-office-or-libreoffice)
+  - [2. Download PESU Downloader](#2-download-pesu-downloader)
+  - [3. Add the extension to your browser](#3-add-the-extension-to-your-browser)
   - [Using Firefox?](#using-firefox)
-  - [3. Install the converter helper (for PPT and DOC files)](#3-install-the-converter-helper-for-ppt-and-doc-files)
+  - [4. Connect the converter](#4-connect-the-converter)
+  - [5. Check that everything is ready](#5-check-that-everything-is-ready)
 - [How to use it](#how-to-use-it)
 - [Rename anything](#rename-anything)
 - [While it runs](#while-it-runs)
@@ -88,13 +90,13 @@ Downloads/
 
 **New to this? No problem.** You don't need to know any coding, and you don't need git, a terminal or a GitHub account. Here's everything you need:
 
-| What | Do I have it? |
+| What | Notes |
 |---|---|
 | 💻 **A laptop or desktop** with Windows, macOS or Linux | Phones and tablets can't run extensions like this. |
 | 🌐 **A supported browser:** Chrome, Edge, Brave, Firefox, Vivaldi or Arc | **Windows already has Edge.** On a Mac, install [Chrome](https://www.google.com/chrome/) for free. **Safari is not supported.** |
 | 🔑 **Your PESU Academy login** | The extension uses the login of the browser it's installed in, so log in to pesuacademy.com in that browser. |
-| 📂 **About 5 minutes** and an internet connection | |
-| 📊 *Optional:* **Python** plus **Microsoft Office or LibreOffice** | Only needed to turn PowerPoint/Word files into PDF. [Step 3](#3-install-the-converter-helper-for-ppt-and-doc-files) walks you through it, and [this table](#2-add-the-extension-to-your-browser) shows what works without it. |
+| 📊 **Microsoft Office or LibreOffice** (LibreOffice is free) and **Python** (free) | Needed to turn PowerPoint and Word files into PDF, and most PESU courses have them. Don't have them? [Step 1](#1-install-python-and-office-or-libreoffice) shows how to install them. |
+| ⏱️ **About 15 minutes** and an internet connection | A bit longer if you need to download LibreOffice. |
 
 <details>
 <summary><b>Never unzipped a file or found your Downloads folder? Read this first.</b></summary>
@@ -114,14 +116,71 @@ Downloads/
 
 ---
 
-## Install (5 minutes)
+## Install (about 15 minutes)
 
 Works in **Chrome, Edge, Brave, Chromium, Vivaldi, Arc and Firefox**, on **Windows, macOS and Linux**. Firefox has a few different steps: [see below](#using-firefox).
+
+> [!IMPORTANT]
+> **Do all five steps, in order.** Don't skip step 1. Most courses share slides as PowerPoint and notes as Word files. Without Office or LibreOffice, those are only saved as they are and are left out of your combined PDFs.
 
 > [!WARNING]
 > **Safari is not supported.** Apple only allows Safari extensions that are built with Xcode on a Mac and signed with a paid Apple developer account. **On a Mac, use Chrome, Edge, Brave or Firefox for PESU downloads** and keep Safari for everything else. Opera may work but isn't tested.
 
-### 1. Download the code
+### 1. Install Python and Office or LibreOffice
+
+The extension uses these to turn PowerPoint and Word files into PDF. Both are free (except Microsoft Office). Skip any part you already have.
+
+<details open>
+<summary><b>🪟 Windows</b></summary>
+
+**a) Python**
+
+1. Go to **[python.org/downloads](https://www.python.org/downloads/)** and click the big yellow **Download Python 3.x** button.
+2. Open the downloaded file.
+3. ⚠️ **On the first screen, tick "Add python.exe to PATH"** at the bottom. This is important.
+4. Click **Install Now**. When it says *Setup was successful*, click **Close**.
+
+Install it from python.org, not from the Microsoft Store.
+
+**b) Microsoft Office or LibreOffice**
+
+- **Already have Microsoft Office?** Press the <kbd>Win</kbd> key and type **PowerPoint**. If PowerPoint shows up, you're done: skip to step 2. (The installed app is needed. Office in the browser doesn't count.)
+- **No Office?** Install **LibreOffice**. It's free:
+  1. Go to **[libreoffice.org/download](https://www.libreoffice.org/download/download-libreoffice/)** and click **Download** (it picks Windows for you).
+  2. Open the downloaded file and click **Next** through the setup with the default options, then **Install**.
+  3. If Windows asks *"Do you want to allow this app to make changes?"*, click **Yes**.
+
+</details>
+
+<details>
+<summary><b>🍎 macOS</b></summary>
+
+On a Mac the converter uses **LibreOffice**, even if you have Microsoft Office, so install LibreOffice either way.
+
+**a) Python:** go to **[python.org/downloads](https://www.python.org/downloads/)**, click **Download Python 3.x**, open the downloaded file and click **Continue** → **Install**.
+
+**b) LibreOffice:**
+
+1. Check your Mac's chip: Apple menu  → **About This Mac**. It says either **Chip: Apple M…** or **Processor: Intel**.
+2. Go to **[libreoffice.org/download](https://www.libreoffice.org/download/download-libreoffice/)** and choose **macOS (Apple Silicon)** for an M chip, or **macOS x86_64** for Intel. Then click **Download**.
+3. Open the downloaded file and **drag LibreOffice into the Applications folder**.
+
+Use Homebrew? Then `brew install python` and `brew install --cask libreoffice` do the same.
+
+</details>
+
+<details>
+<summary><b>🐧 Linux</b></summary>
+
+The converter uses **LibreOffice** on Linux.
+
+```bash
+sudo apt install python3 libreoffice      # Fedora: sudo dnf install python3 libreoffice
+```
+
+</details>
+
+### 2. Download PESU Downloader
 
 **Option A (easiest, no git needed):**
 
@@ -139,7 +198,7 @@ git clone https://github.com/VismayHS/Pesu_Merger.git
 > [!IMPORTANT]
 > Keep the folder somewhere permanent, such as **Documents**. The browser loads the extension from this folder, so it stops working if you delete or move the folder.
 
-### 2. Add the extension to your browser
+### 3. Add the extension to your browser
 
 1. Open the extensions page. Type one of these into the address bar:
 
@@ -150,73 +209,54 @@ git clone https://github.com/VismayHS/Pesu_Merger.git
    | Edge | `edge://extensions` |
    | Vivaldi | `vivaldi://extensions` |
 
-2. Turn on **Developer mode**. It's a switch in the top-right corner; in Edge it's in the left sidebar. (This only lets you add extensions from a folder. It's safe, and it doesn't change anything else.)
+2. Turn on **Developer mode**. It's a switch in the top-right corner; in Edge it's in the left sidebar. This only lets you add extensions from a folder. It's safe, and it doesn't change anything else.
 3. Click **Load unpacked**.
 4. In the window that opens, go into the project folder (`Pesu_Merger-main`), click the **`extension`** folder once to select it, and press **Select Folder**. Choose that folder itself, not the outer `Pesu_Merger-main` folder.
 5. **PESU Downloader** now appears in the list. Click the puzzle-piece icon 🧩 in the toolbar and **pin** it so it's always one click away.
 
 If the browser later shows a message about "developer mode extensions", just close it or click **Keep**. That's normal for extensions added this way.
 
-That's it for PDF material. To also convert PPT and DOC files, do step 3.
-
-> [!NOTE]
-> **Does it work without Office or LibreOffice?** Yes. You can skip step 3 and everything else still works. Here's what changes:
->
-> | | Without step 3 | With step 3 |
-> |---|---|---|
-> | PDF files (most notes and slides on PESU) | ✅ Downloaded and combined | ✅ Downloaded and combined |
-> | MCQs with answers | ✅ | ✅ |
-> | Images and text files | ✅ Turned into PDF | ✅ Turned into PDF |
-> | PPT / PPTX / DOC / DOCX / XLSX | ⚠️ Saved as the original file, not added to the combined PDFs | ✅ Turned into PDF and combined |
->
-> The extension tells you which case you're in: the top-right corner shows **Converter: MS Office** or **LibreOffice** when it's ready. If something is missing, a banner says what to install.
-
 ### Using Firefox?
 
-Firefox works too (version 128 or newer), but it adds extensions differently:
+Firefox works too (version 128 or newer), but it adds extensions differently. Do this instead of step 3:
 
-1. Do [step 1](#1-download-the-code) as above.
-2. In Firefox, type **`about:debugging#/runtime/this-firefox`** in the address bar and press <kbd>Enter</kbd>.
-3. Click **Load Temporary Add-on…**.
-4. Go into the project folder, open the **`extension`** folder and pick the file **`manifest.json`**.
-5. If a banner on the PESU Downloader page asks for access to pesuacademy.com, click **Allow access**.
+1. In Firefox, type **`about:debugging#/runtime/this-firefox`** in the address bar and press <kbd>Enter</kbd>.
+2. Click **Load Temporary Add-on…**.
+3. Go into the project folder, open the **`extension`** folder and pick the file **`manifest.json`**.
+4. If a banner on the PESU Downloader page asks for access to pesuacademy.com, click **Allow access**.
 
 > [!NOTE]
-> Firefox removes **temporary** add-ons when you close it, so you'll need to repeat steps 2–4 each time you start Firefox. They take about 10 seconds. If you'd rather not, use Chrome, Edge or Brave, where it stays installed.
+> Firefox removes **temporary** add-ons when you close it, so you'll need to repeat these steps each time you start Firefox. They take about 10 seconds. If you'd rather not, use Chrome, Edge or Brave, where it stays installed.
 
-The converter helper in [step 3](#3-install-the-converter-helper-for-ppt-and-doc-files) works with Firefox as well: the installer sets it up for Firefox automatically.
+### 4. Connect the converter
 
-### 3. Install the converter helper (for PPT and DOC files)
-
-Browsers can't turn PowerPoint or Word files into PDF themselves. A small helper program on your computer does it, using Microsoft Office or the free LibreOffice. It needs no admin rights and works offline.
+This connects the extension to Office or LibreOffice from step 1. It sets itself up for every supported browser on your computer, Firefox included. It needs no admin rights.
 
 <details open>
 <summary><b>🪟 Windows</b></summary>
 
-1. Install **[Python 3](https://www.python.org/downloads/)**. During setup, tick **"Add python.exe to PATH"**.
-2. Make sure you have **Microsoft Office** (best results) or **[LibreOffice](https://www.libreoffice.org/download/)** (free).
-3. Open the project folder, go into `native-host` and **double-click `install.bat`**.
+1. Open the project folder (`Pesu_Merger-main`), then the **`native-host`** folder.
+2. **Double-click `install.bat`**. If Windows asks whether to run it, click **Run**. If it says *"Windows protected your PC"*, click **More info** → **Run anyway**.
+3. A black window lists what it found, for example `MS Office: PowerPoint, Word, Excel` or a `LibreOffice: …` path. When it says **Done**, press any key to close it.
 
 </details>
 
 <details>
 <summary><b>🍎 macOS</b></summary>
 
-```bash
-brew install python
-brew install --cask libreoffice
-bash native-host/install.sh
-```
-
-No Homebrew? Install Python from [python.org](https://www.python.org/downloads/) and LibreOffice from [libreoffice.org](https://www.libreoffice.org/download/). Make sure LibreOffice ends up in `/Applications`.
+1. Open **Terminal**: press <kbd>⌘</kbd> + <kbd>Space</kbd>, type **Terminal** and press <kbd>Enter</kbd>.
+2. Type `bash` followed by a space. **Don't press Enter yet.**
+3. In Finder, open the project folder, then **`native-host`**, and **drag the file `install.sh` into the Terminal window**. Its location appears after `bash `.
+4. Press <kbd>Enter</kbd>. When it says **Done**, you can close Terminal.
 
 </details>
 
 <details>
 <summary><b>🐧 Linux</b></summary>
 
+From the project folder:
+
 ```bash
-sudo apt install python3 libreoffice      # Fedora: sudo dnf install python3 libreoffice
 bash native-host/install.sh
 ```
 
@@ -224,19 +264,13 @@ A **Snap or Flatpak** browser can't start local helpers. Use the `.deb`/`.rpm` b
 
 </details>
 
-**Don't have Microsoft Office?** Install **LibreOffice**. It's free, and it works on Windows, macOS and Linux:
+> Moved the project folder later? Run the installer again. To remove the converter, run `native-host\uninstall.bat` (Windows) or `bash native-host/uninstall.sh` (macOS/Linux).
 
-- download it from **[libreoffice.org/download](https://www.libreoffice.org/download/)** and install it with the default options; or
-- on macOS, `brew install --cask libreoffice`; or
-- on Linux, `sudo apt install libreoffice` (or your distro's package).
+### 5. Check that everything is ready
 
-You can install LibreOffice before or after the helper. If you add it later, just press **Re-check** in the extension. You don't need to run the installer again.
+Restart your browser once, then open **PESU Downloader** by clicking its icon. The top-right corner should say **Converter: MS Office** or **Converter: LibreOffice**. 🎉 You're ready: see [How to use it](#how-to-use-it).
 
-The installer finds Python, registers the helper with every supported browser on your computer, runs a self-test and tells you which converter it found.
-
-Then open the extension and press **Re-check** (or restart the browser once). The top-right corner should say **Converter: MS Office** or **Converter: LibreOffice**.
-
-> Moved the project folder? Run the installer again. To remove the helper, run `native-host\uninstall.bat` (Windows) or `bash native-host/uninstall.sh` (macOS/Linux).
+If a banner says the converter isn't installed, or that it needs Office or LibreOffice, press **Re-check**. If it still shows, see [Troubleshooting](#troubleshooting).
 
 ---
 
@@ -383,7 +417,7 @@ The extension talks **only** to `pesuacademy.com` and its file server `files.pes
 <details>
 <summary><b>"Converter not installed"</b></summary>
 
-- Run the installer for your system ([step 3](#3-install-the-converter-helper-for-ppt-and-doc-files)), then press **Re-check**. If the browser was already open, restart it once.
+- Run the installer for your system ([step 4](#4-connect-the-converter)), then press **Re-check**. If the browser was already open, restart it once.
 - Linux: Snap/Flatpak browsers can't run helpers. Use the `.deb`/`.rpm` version of the browser.
 
 </details>
