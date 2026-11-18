@@ -148,13 +148,16 @@ function pill(id, cls, text) {
 
 function setRunning(on) {
   state.running = on;
+  document.body.classList.toggle('running', on);
+  if (on) $('#namingBox').open = false; // keep the progress in view; names are locked anyway
   $('#btnStart').disabled = on || !planReady();
   $('#btnStart').classList.toggle('loading', on);
   $('#btnStart span').textContent = on ? 'Working…' : 'Start';
   $('#btnCancel').disabled = !on;
+  $('#btnCancel').textContent = 'Cancel';
   $('#btnScan').disabled = on || !state.selectedCourses.size;
   $('#semester').disabled = on;
-  $$('#stepOptions input, #stepOptions select, #stepOptions .seg button, #stepOptions .nopt').forEach((e) => (e.disabled = on));
+  $$('#stepOptions input, #stepOptions select, #stepOptions .seg button, #namingBox .nopt, #btnResetNames, #btnAllUnits, #btnNoUnits').forEach((e) => (e.disabled = on));
   $$('#courseList input, #unitTables input, #cats input').forEach((e) => (e.disabled = on));
 }
 
@@ -241,7 +244,7 @@ function buildOptions() {
   box.innerHTML = '';
   for (const m of MODES) {
     const lab = document.createElement('label');
-    lab.className = 'mode';
+    lab.className = 'mode spot';
     lab.innerHTML = `<input type="radio" name="mergeMode" value="${m.v}"><div class="art">${m.art.map(([w, h]) => `<i style="width:${w}px;height:${h}px"></i>`).join('')}</div><b>${esc(m.t)}</b><small>${esc(m.d)}</small>`;
     const r = lab.querySelector('input');
     r.checked = s.mergeMode === m.v;
@@ -275,6 +278,7 @@ function buildOptions() {
   root.addEventListener('change', () => { s.rootFolder = U.safeName(root.value || DEFAULTS.rootFolder, 40); root.value = s.rootFolder; saveSettings(); updatePlan(); });
 
   $('#btnResetNames').addEventListener('click', () => {
+    if (state.running) return;
     s.naming = { ...NAMING_CHOICE_DEFAULTS };
     saveSettings();
     renderNaming();
@@ -326,7 +330,9 @@ function renderNaming() {
       // separate files: show only the file name; the folder part is automatic
       b.querySelector('.ex').textContent = (kind === 'course' ? ex : ex.split('/').pop()) + suffix;
       b.title = ex + suffix;
+      b.disabled = state.running;
       b.addEventListener('click', () => {
+        if (state.running) return;
         s.naming[kind] = id;
         saveSettings();
         renderNaming();
@@ -561,7 +567,7 @@ function renderCourses() {
   }
   state.courses.forEach((c, i) => {
     const lab = document.createElement('label');
-    lab.className = 'course';
+    lab.className = 'course spot';
     lab.style.setProperty('--i', i);
     lab.innerHTML = `<input type="checkbox"><span class="tick">${svg('check')}</span><span class="code"></span><span class="title"></span>${c.type ? '<span class="tag"></span>' : ''}`;
     const cb = lab.querySelector('input');
@@ -727,6 +733,7 @@ function planReady() {
   const p = selectedPlan();
   return p.courses.length > 0 && p.cats.length > 0;
 }
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many || one + 's'}`;
 function updatePlan() {
   const p = selectedPlan();
   const el = $('#planSummary');
@@ -738,7 +745,7 @@ function updatePlan() {
   }
   let items = 0;
   for (const c of p.courses) for (const u of c.units) for (const t of p.cats) items += u.counts[t] || 0;
-  el.textContent = `${p.courses.length} course${p.courses.length > 1 ? 's' : ''} · ${p.courses.reduce((a, c) => a + c.units.length, 0)} unit(s) · ${p.cats.length} categories · ~${items} items → Downloads/${U.safeName($('#optRoot').value || state.settings.rootFolder, 40)}/`;
+  el.textContent = `${p.courses.length} course${p.courses.length > 1 ? 's' : ''} · ${plural(p.courses.reduce((a, c) => a + c.units.length, 0), 'unit')} · ${plural(p.cats.length, 'category', 'categories')} · ~${plural(items, 'item')} → Downloads/${U.safeName($('#optRoot').value || state.settings.rootFolder, 40)}/`;
   $('#btnStart').disabled = state.running;
 }
 
@@ -843,7 +850,7 @@ const PHASES = { lists: 0.12, docs: 0.6, mcq: 0.1, merge: 0.18 };
 const PHASE_ORDER = ['lists', 'docs', 'mcq', 'merge'];
 function progress(phaseKey, frac, label) {
   const j = state.job;
-  if (!j) return;
+  if (!j || !state.running) return;
   let before = 0;
   for (const k of PHASE_ORDER) { if (k === phaseKey) break; before += PHASES[k]; }
   const within = before + PHASES[phaseKey] * Math.max(0, Math.min(1, frac));
@@ -875,7 +882,7 @@ function renderStats() {
     if (!el) continue;
     const b = el.querySelector('b');
     if (lastStats[k] !== v) {
-      b.textContent = v;
+      FX.count(b, v);
       b.classList.remove('bump');
       void b.offsetWidth;
       b.classList.add('bump');
@@ -961,6 +968,14 @@ function saveFile(base, rel, data, mime, headline) {
 const clsLabel = (c) => `${U.pad(c.idx)}. ${c.title}`;
 const unitLabel = (u) => `Unit ${u.idx} — ${u.name}`;
 
+/** Like Promise.all, but waits for every task to settle before re-throwing (clean cancel). */
+async function settleAll(promises) {
+  const rs = await Promise.allSettled(promises);
+  const bad = rs.find((r) => r.status === 'rejected' && r.reason instanceof Cancelled) || rs.find((r) => r.status === 'rejected');
+  if (bad) throw bad.reason;
+  return rs.map((r) => r.value);
+}
+
 async function sha256(bytes) {
   const d = await crypto.subtle.digest('SHA-256', bytes);
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -1036,7 +1051,7 @@ function showResult(outcome) {
   const box = $('#resultBox');
   const probs = j.warnings.length + j.errors.length;
   box.className = 'result ' + (outcome !== 'ok' ? 'bad' : probs ? 'warn' : '');
-  const title = outcome === 'ok' ? (probs ? 'Done — with a few problems' : 'All done!') : outcome === 'cancelled' ? 'Cancelled' : 'Stopped because of an error';
+  const title = outcome === 'ok' ? (probs ? 'Done, with a few problems' : 'All done') : outcome === 'cancelled' ? 'Stopped. Files saved so far are kept.' : 'Stopped because of an error';
   $('#phase').textContent = title;
   const s = j.stats;
   const files = j.headline.slice(0, 40);
@@ -1079,7 +1094,7 @@ async function processCourse(c, cats) {
   let doneLists = 0;
   progress('lists', 0, `${label}: reading content lists (0/${tasks.length})`);
   const lim = U.limiter(4);
-  await Promise.all(tasks.map((task) => lim(async () => {
+  await settleAll(tasks.map((task) => lim(async () => {
     checkCancel();
     try {
       const html = await withSession(() => Net.text(PESU.urls.content(course.id, task.u.id, task.cls.uuid, task.cls.classNo, task.t, c.subType)));
@@ -1125,7 +1140,7 @@ async function processCourse(c, cats) {
   const convCache = new Map();
   let doneDocs = 0;
   const dl = U.limiter(3);
-  await Promise.all(docs.map((d) => dl(async () => {
+  await settleAll(docs.map((d) => dl(async () => {
     checkCancel();
     try {
       await fetchAndConvert(d, base, S, report, problem, convCache);
@@ -1482,9 +1497,13 @@ function wire() {
   $('#btnNoUnits').addEventListener('click', () => { state.selectedUnits.clear(); renderUnits(); });
   $('#btnStart').addEventListener('click', startJob);
   $('#btnCancel').addEventListener('click', () => {
-    if (!state.job) return;
+    if (!state.job || !state.running || state.job.cancel) return;
     state.job.cancel = true;
-    $('#phase').textContent = 'Cancelling…';
+    const b = $('#btnCancel');
+    b.disabled = true;
+    b.textContent = 'Stopping…';
+    $('#phase').textContent = 'Stopping after the current file — everything saved so far is kept…';
+    log('warn', 'Stopping… waiting for the files in progress to finish.');
     if (state.sessionResolve) { stopSessionWatch(); state.sessionResolve(); state.sessionWait = null; state.sessionResolve = null; }
   });
   $('#btnOpenPesu').addEventListener('click', async () => {
@@ -1521,6 +1540,8 @@ function wire() {
 }
 
 (async function main() {
+  FX.reveal($('#heroTitle'));
+  FX.magnet($('#btnStart'));
   await loadSettings();
   buildOptions();
   wire();

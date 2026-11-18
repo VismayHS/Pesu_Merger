@@ -79,7 +79,7 @@ After it finishes, press **Re-check** on the extension page, or restart the brow
   - PDF (answers marked, as a key at the end, or hidden)
   - an interactive practice page (`.html`)
   - Markdown and JSON
-- **Pick a naming style.** Under **File names**, choose how course folders, merged PDFs and separate files are named. Each option shows the real name you'll get. Folders are organised automatically, with one `UnitN_Content` folder per unit.
+- **Pick a naming style.** Under **Rename files** in the right-hand panel, next to the live folder preview, choose how course folders, merged PDFs and separate files are named. Each option shows the real name you'll get. Folders are organised automatically, with one `UnitN_Content` folder per unit.
 - **No duplicates.**
   - Material shared across a whole unit is downloaded once.
   - Identical files uploaded under different classes are detected by content (SHA-256) and kept once.

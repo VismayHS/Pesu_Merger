@@ -52,7 +52,17 @@
 
   <!-- ===================================================== DOWNLOAD -->
   <main class="panel active layout" id="panel-download" role="tabpanel">
+    <section class="hero">
+      <p class="eyebrow shiny">PESU Academy, organised</p>
+      <h1 id="heroTitle">Your whole semester, neatly in one folder.</h1>
+      <p class="lede">Pick courses and units. Every slide, note and question bank is downloaded, turned into PDF and merged, unit by unit, with MCQs and their answers.</p>
+    </section>
+
     <div class="flow">
+      <div class="lock-note" role="status">
+        <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+        <span>Settings are locked while the download runs. Press <b>Cancel</b> to change them.</span>
+      </div>
 
       <section class="step" id="stepCourses" style="--d:0">
         <header class="step-head">
@@ -86,7 +96,7 @@
       <section class="step" id="stepOptions" style="--d:2">
         <header class="step-head">
           <span class="step-no">03</span>
-          <div class="step-title"><h2>Output</h2><p>How files are combined. The panel on the right shows the result.</p></div>
+          <div class="step-title"><h2>Output</h2><p>How files are combined. The panel on the right shows the result, and lets you rename files.</p></div>
         </header>
 
         <div class="opt-group">
@@ -140,13 +150,6 @@
               </select>
             </label>
           </div>
-          <details class="naming" id="namingBox">
-            <summary><span>File names</span><span class="muted small">Optional. Pick a style.</span></summary>
-            <div class="naming-body">
-              <div class="tpl-list" id="tplList"></div>
-              <button class="btn ghost small" id="btnResetNames">Reset to defaults</button>
-            </div>
-          </details>
         </div>
       </section>
     </div>
@@ -162,6 +165,18 @@
           <div class="tree" id="previewTree"><div class="muted small">Scan a course to preview the folders and files.</div></div>
           <div class="preview-foot muted small" id="previewFoot"></div>
         </div>
+
+        <details class="naming" id="namingBox">
+          <summary>
+            <svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg>
+            <span>Rename files</span>
+            <span class="lock-tag"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Locked while downloading</span>
+          </summary>
+          <div class="naming-body">
+            <div class="tpl-list" id="tplList"></div>
+            <button class="btn ghost small" id="btnResetNames">Reset to defaults</button>
+          </div>
+        </details>
 
         <div class="actions">
           <button class="btn primary big" id="btnStart" disabled>
@@ -220,6 +235,7 @@
   <script src="src/mcq.js"></script>
   <script src="src/native.js"></script>
   <script src="src/net.js"></script>
+  <script src="src/fx.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
