@@ -12,7 +12,7 @@ Made by **Vismay H S**
 
 [![Star this repo](https://img.shields.io/github/stars/VismayHS/Pesu_Merger?style=for-the-badge&logo=github&label=Star%20this%20repo&color=111111)](https://github.com/VismayHS/Pesu_Merger/stargazers)
 &nbsp;
-![Browsers](https://img.shields.io/badge/Chrome%20·%20Brave%20·%20Edge%20·%20Arc%20·%20Vivaldi-111111?style=for-the-badge)
+![Browsers](https://img.shields.io/badge/Chrome%20·%20Brave%20·%20Edge%20·%20Firefox%20·%20Arc%20·%20Vivaldi-111111?style=for-the-badge)
 &nbsp;
 ![OS](https://img.shields.io/badge/Windows%20·%20macOS%20·%20Linux-111111?style=for-the-badge)
 
@@ -30,9 +30,11 @@ Made by **Vismay H S**
 ## Contents
 
 - [What you get](#what-you-get)
+- [Before you start](#before-you-start)
 - [Install (5 minutes)](#install-5-minutes)
   - [1. Download the code](#1-download-the-code)
   - [2. Add the extension to your browser](#2-add-the-extension-to-your-browser)
+  - [Using Firefox?](#using-firefox)
   - [3. Install the converter helper (for PPT and DOC files)](#3-install-the-converter-helper-for-ppt-and-doc-files)
 - [How to use it](#how-to-use-it)
 - [Rename anything](#rename-anything)
@@ -82,20 +84,53 @@ Downloads/
 
 ---
 
+## Before you start
+
+**New to this? No problem.** You don't need to know any coding, and you don't need git, a terminal or a GitHub account. Here's everything you need:
+
+| What | Do I have it? |
+|---|---|
+| 💻 **A laptop or desktop** with Windows, macOS or Linux | Phones and tablets can't run extensions like this. |
+| 🌐 **A supported browser:** Chrome, Edge, Brave, Firefox, Vivaldi or Arc | **Windows already has Edge.** On a Mac, install [Chrome](https://www.google.com/chrome/) for free. **Safari is not supported.** |
+| 🔑 **Your PESU Academy login** | The extension uses the login of the browser it's installed in, so log in to pesuacademy.com in that browser. |
+| 📂 **About 5 minutes** and an internet connection | |
+| 📊 *Optional:* **Python** plus **Microsoft Office or LibreOffice** | Only needed to turn PowerPoint/Word files into PDF. [Step 3](#3-install-the-converter-helper-for-ppt-and-doc-files) walks you through it, and [this table](#2-add-the-extension-to-your-browser) shows what works without it. |
+
+<details>
+<summary><b>Never unzipped a file or found your Downloads folder? Read this first.</b></summary>
+
+- **Downloads folder:**
+  - On Windows, open **File Explorer** (the yellow folder icon on the taskbar, or press <kbd>Win</kbd> + <kbd>E</kbd>) and click **Downloads** on the left.
+  - On a Mac, open **Finder** and click **Downloads** in the sidebar.
+- **Unzipping (extracting) a ZIP file:**
+  - On Windows, right-click the `.zip` file, choose **Extract All…**, then **Extract**.
+  - On a Mac, just double-click the `.zip` file.
+  - You get a normal folder, here called `Pesu_Merger-main`. Use that folder, not the `.zip`.
+- **Moving a folder:** drag it onto **Documents** in the sidebar, or right-click it, **Cut**, open Documents and **Paste**.
+- **Typing an address like `chrome://extensions`:** click the bar at the top of the browser where website addresses go, type it exactly and press <kbd>Enter</kbd>.
+- **The `extension` folder** is the one that has a file called `manifest.json` inside it. That's the folder the browser asks for.
+
+</details>
+
+---
+
 ## Install (5 minutes)
 
-You need a Chromium-based browser: **Chrome, Brave, Edge, Chromium, Vivaldi or Arc**, on **Windows, macOS or Linux**.
+Works in **Chrome, Edge, Brave, Chromium, Vivaldi, Arc and Firefox**, on **Windows, macOS and Linux**. Firefox has a few different steps: [see below](#using-firefox).
 
 > [!WARNING]
-> **Safari and Firefox are not supported.** Opera may work but isn't tested. Phones and tablets aren't supported either, because mobile browsers can't load extensions like this.
->
-> **Use Safari or Firefox?** Install [Chrome](https://www.google.com/chrome/), [Brave](https://brave.com/download/) or [Edge](https://www.microsoft.com/edge) (all free; Edge is already on every Windows PC). Use it just for PESU downloads and keep your usual browser for everything else. Log in to PESU Academy in that browser, since the extension uses the login of the browser it's installed in.
+> **Safari is not supported.** Apple only allows Safari extensions that are built with Xcode on a Mac and signed with a paid Apple developer account. **On a Mac, use Chrome, Edge, Brave or Firefox for PESU downloads** and keep Safari for everything else. Opera may work but isn't tested.
 
 ### 1. Download the code
 
-**Option A (easiest):** on this page click the green **Code** button, then **Download ZIP**, and unzip it.
+**Option A (easiest, no git needed):**
 
-**Option B (with git):**
+1. Near the top of this page, click the green **`<> Code`** button.
+2. Click **Download ZIP**. It's saved to your **Downloads** folder.
+3. Unzip it ([how?](#before-you-start)). You get a folder called **`Pesu_Merger-main`**.
+4. Move that folder into **Documents** (or anywhere you won't delete it by accident).
+
+**Option B (if you use git):**
 
 ```bash
 git clone https://github.com/VismayHS/Pesu_Merger.git
@@ -115,10 +150,12 @@ git clone https://github.com/VismayHS/Pesu_Merger.git
    | Edge | `edge://extensions` |
    | Vivaldi | `vivaldi://extensions` |
 
-2. Turn on **Developer mode**. It's a switch in the top-right corner; in Edge it's in the left sidebar.
+2. Turn on **Developer mode**. It's a switch in the top-right corner; in Edge it's in the left sidebar. (This only lets you add extensions from a folder. It's safe, and it doesn't change anything else.)
 3. Click **Load unpacked**.
-4. Select the **`extension`** folder inside the project. Choose that folder itself, not the outer `Pesu_Merger` folder.
-5. Click the puzzle-piece icon in the toolbar and **pin** PESU Downloader so it's always one click away.
+4. In the window that opens, go into the project folder (`Pesu_Merger-main`), click the **`extension`** folder once to select it, and press **Select Folder**. Choose that folder itself, not the outer `Pesu_Merger-main` folder.
+5. **PESU Downloader** now appears in the list. Click the puzzle-piece icon 🧩 in the toolbar and **pin** it so it's always one click away.
+
+If the browser later shows a message about "developer mode extensions", just close it or click **Keep**. That's normal for extensions added this way.
 
 That's it for PDF material. To also convert PPT and DOC files, do step 3.
 
@@ -133,6 +170,21 @@ That's it for PDF material. To also convert PPT and DOC files, do step 3.
 > | PPT / PPTX / DOC / DOCX / XLSX | ⚠️ Saved as the original file, not added to the combined PDFs | ✅ Turned into PDF and combined |
 >
 > The extension tells you which case you're in: the top-right corner shows **Converter: MS Office** or **LibreOffice** when it's ready. If something is missing, a banner says what to install.
+
+### Using Firefox?
+
+Firefox works too (version 128 or newer), but it adds extensions differently:
+
+1. Do [step 1](#1-download-the-code) as above.
+2. In Firefox, type **`about:debugging#/runtime/this-firefox`** in the address bar and press <kbd>Enter</kbd>.
+3. Click **Load Temporary Add-on…**.
+4. Go into the project folder, open the **`extension`** folder and pick the file **`manifest.json`**.
+5. If a banner on the PESU Downloader page asks for access to pesuacademy.com, click **Allow access**.
+
+> [!NOTE]
+> Firefox removes **temporary** add-ons when you close it, so you'll need to repeat steps 2–4 each time you start Firefox. They take about 10 seconds. If you'd rather not, use Chrome, Edge or Brave, where it stays installed.
+
+The converter helper in [step 3](#3-install-the-converter-helper-for-ppt-and-doc-files) works with Firefox as well: the installer sets it up for Firefox automatically.
 
 ### 3. Install the converter helper (for PPT and DOC files)
 
@@ -385,7 +437,14 @@ It must be in `/Applications/LibreOffice.app`. Move it there and run `install.sh
 <details>
 <summary><b>How do I update to a new version?</b></summary>
 
-Download the new code (or `git pull`), then press the **reload ↻** button on the extension's card in `chrome://extensions`. Run the helper installer again only if you moved the folder.
+Download the new code (or `git pull`), then press the **reload ↻** button on the extension's card in `chrome://extensions`. In Firefox, press **Reload** next to PESU Downloader on the `about:debugging` page. Run the helper installer again only if you moved the folder.
+
+</details>
+
+<details>
+<summary><b>Firefox: PESU Downloader disappeared</b></summary>
+
+Firefox removes temporary add-ons when it closes. Load it again from `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on…** → `extension/manifest.json` ([details](#using-firefox)).
 
 </details>
 
