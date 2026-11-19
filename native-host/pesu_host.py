@@ -181,7 +181,8 @@ def find_soffice():
     path = os.environ.get("PATH", "") + ("" if IS_WIN else os.pathsep + extra)
     for name in ("soffice", "soffice.exe", "libreoffice"):
         w = shutil.which(name, path=path)
-        if w:
+        # Skip private copies bundled inside other apps' hidden folders (e.g. ~/.cache/<app>/...).
+        if w and os.sep + "." not in os.path.dirname(os.path.abspath(w)):
             cands.append(w)
     for c in cands:
         if c and os.path.isfile(c):

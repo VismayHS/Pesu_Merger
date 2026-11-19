@@ -643,10 +643,23 @@ async function checkHelper() {
   };
   if (!info) {
     state.converter = 'missing';
-    pill('#chipHelper', 'warn', 'Converter not set up');
-    showBanner('Set up the converter: it\'s needed for PowerPoint and Word files',
-      'Most courses have PPT and DOCX files. Run <code id="helperCmd"></code> once from the project folder (it installs anything missing), then press Re-check.',
-      SETUP_GUIDE, false);
+    // "not found" means it was never registered; any other error means it is registered but failed to start.
+    const err = host.lastError || '';
+    const notRegistered = !err || /not found|no such native application/i.test(err);
+    const restart = plat.includes('mac') ? 'quit the browser completely (Cmd+Q) and open it again'
+      : 'close every browser window and open the browser again';
+    if (notRegistered) {
+      pill('#chipHelper', 'warn', 'Converter not set up');
+      showBanner('Set up the converter: it\'s needed for PowerPoint and Word files',
+        'Most courses have PPT and DOCX files. Run <code id="helperCmd"></code> once from the project folder (it installs anything missing), then ' + restart + '.',
+        SETUP_GUIDE, false);
+    } else {
+      log('warn', 'The converter is registered but did not start: ' + err);
+      pill('#chipHelper', 'warn', 'Converter didn\'t start');
+      showBanner('The converter is set up but didn\'t start',
+        'Run <code id="helperCmd"></code> again from the project folder (it repairs this), then ' + restart + '. Then press Re-check.',
+        SETUP_GUIDE, false);
+    }
     syncConvertWarn();
     return;
   }

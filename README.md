@@ -108,7 +108,7 @@ Use git? `git clone https://github.com/VismayHS/Pesu_Merger.git` works too.
 3. Click **Load unpacked**, open `Pesu_Merger-main`, select the **`extension`** folder (the one with `manifest.json` inside) and press **Select Folder**.
 4. Click the puzzle-piece icon 🧩 in the toolbar and **pin** PESU Downloader.
 
-If the browser later warns about "developer mode extensions", click **Keep**. That's normal for extensions added this way.
+Use more than one browser profile? Add the extension in each profile you use PESU in. If the browser later warns about "developer mode extensions", click **Keep**. That's normal for extensions added this way.
 
 #### Using Firefox?
 
@@ -142,7 +142,7 @@ Most courses share slides as PowerPoint and notes as Word files. The installer s
 1. Open **Terminal**: press <kbd>⌘</kbd> + <kbd>Space</kbd>, type **Terminal** and press <kbd>Enter</kbd>.
 2. Type `bash` and a space. Then drag **`install.sh`** from the `native-host` folder into the Terminal window and press <kbd>Enter</kbd>.
 
-With Homebrew it installs Python and LibreOffice for you. Without it, it opens the download pages and tells you what to click. On a Mac the converter always uses LibreOffice, even if you have Microsoft Office.
+It installs anything missing, with Homebrew if you have it, otherwise straight from the official websites (it checks they're genuine first, and asks for your Mac's password). Already downloaded LibreOffice but never installed it? It finds the file in Downloads and installs it. On a Mac the converter always uses LibreOffice, even if you have Microsoft Office.
 
 </details>
 
@@ -159,18 +159,18 @@ Wait until it says **ALL SET!** If it says **NOT FINISHED**, it tells you exactl
 <summary>Prefer to install Python and LibreOffice yourself?</summary>
 
 - **Python:** [python.org/downloads](https://www.python.org/downloads/). On Windows, tick **"Add python.exe to PATH"** on the first screen, and don't use the Microsoft Store version.
-- **LibreOffice:** [libreoffice.org/download](https://www.libreoffice.org/download/download-libreoffice/). On a Mac, choose Apple Silicon for an M chip or x86_64 for Intel, and drag it into **Applications**. On Windows, an installed Microsoft Office works too (Office in the browser doesn't).
+- **LibreOffice:** [libreoffice.org/download](https://www.libreoffice.org/download/download-libreoffice/). On a Mac, choose Apple Silicon for an M chip or x86_64 for Intel, then open the downloaded file and **drag LibreOffice into Applications** (downloading alone isn't enough). On Windows, an installed Microsoft Office works too (Office in the browser doesn't).
 - **Linux:** `sudo apt install python3 libreoffice` (Fedora: `sudo dnf install python3 libreoffice`).
 
 Then run the installer anyway, because it's what connects the extension.
 
 </details>
 
-> Moved the project folder later? Run the installer again. To remove the converter, run `native-host\uninstall.bat` (Windows) or `bash native-host/uninstall.sh` (macOS/Linux).
+> Updated PESU Downloader or moved its folder? Run the installer again. To remove the converter, run `native-host\uninstall.bat` (Windows) or `bash native-host/uninstall.sh` (macOS/Linux).
 
 ### 4. Open it and check
 
-1. **Restart your browser** once.
+1. **Restart your browser** completely. On a Mac, quit it with <kbd>⌘</kbd> + <kbd>Q</kbd>: closing the window isn't enough.
 2. Open **PESU Downloader** with its toolbar icon.
 3. The top-right corner should say **Converter: MS Office** or **Converter: LibreOffice**. 🎉 You're ready: see [How to use it](#how-to-use-it).
 
@@ -265,9 +265,9 @@ Everything happens in your browser and on your own computer, using your existing
 ## Troubleshooting
 
 <details>
-<summary><b>"Set up the converter" or "Install LibreOffice" keeps showing</b></summary>
+<summary><b>"Set up the converter", "Converter didn't start" or "Install LibreOffice" keeps showing</b></summary>
 
-- Run the installer again ([step 3](#3-run-the-installer)). **ALL SET!** means it worked: restart the browser and press **Re-check**. **NOT FINISHED** tells you what's missing.
+- Run the installer again ([step 3](#3-run-the-installer)). **ALL SET!** means it worked: restart the browser completely (⌘Q on a Mac) and press **Re-check**. **NOT FINISHED** tells you what's missing.
 - To see what it would do without changing anything: `native-host\install.bat -DryRun` (Windows) or `bash native-host/install.sh --dry-run` (macOS/Linux).
 - macOS: LibreOffice must be in `/Applications`. Linux: Snap/Flatpak browsers can't run helpers, so use the `.deb`/`.rpm` build.
 
@@ -297,7 +297,7 @@ The original is saved instead and listed in `_Report.txt`. The helper's log is i
 <details>
 <summary><b>Updating, or Firefox lost the extension</b></summary>
 
-- **Update:** download the new code (or `git pull`), then press **reload ↻** on the extension's card in `chrome://extensions` (in Firefox, **Reload** on the `about:debugging` page).
+- **Update:** download the new code (or `git pull`), press **reload ↻** on the extension's card in `chrome://extensions` (in Firefox, **Reload** on the `about:debugging` page), and run the installer again.
 - **Firefox:** it removes temporary add-ons when it closes. Load it again ([how](#using-firefox)).
 
 </details>
@@ -325,7 +325,7 @@ Please never share your PESU password or SRN in an issue.
 | `extension/src/pdf.js`, `mcq.js` | Merging (pdf-lib), cover page, bookmarks, MCQ PDF and the HTML / Markdown / JSON exports |
 | `extension/src/native.js` | Native-messaging client for the helper |
 | `native-host/pesu_host.py` | The helper (standard library only): MS Office COM on Windows, LibreOffice everywhere |
-| `native-host/install.*`, `uninstall.*`, `selftest.py` | Setup: installs missing Python / LibreOffice, registers the helper, tests it. `-DryRun` / `--dry-run`, `-Yes` / `--yes` |
+| `native-host/install.*`, `uninstall.*`, `selftest.py` | Setup: installs missing Python / LibreOffice (on a Mac without Homebrew, from the official sites after checking signatures), copies the helper out of the project folder on macOS/Linux, registers it, tests it. `-DryRun` / `--dry-run`, `-Yes` / `--yes` |
 
 ```bash
 node tests/host_test.js <folder with office files>          # helper test (run the installer first)
