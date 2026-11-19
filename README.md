@@ -32,12 +32,10 @@ Made by **Vismay H S**
 - [What you get](#what-you-get)
 - [Before you start](#before-you-start)
 - [Install (about 5 minutes)](#install-about-5-minutes)
-  - [1. Install Python and Office or LibreOffice](#1-install-python-and-office-or-libreoffice)
-  - [2. Download PESU Downloader](#2-download-pesu-downloader)
-  - [3. Add the extension to your browser](#3-add-the-extension-to-your-browser)
-  - [Using Firefox?](#using-firefox)
-  - [4. Connect the converter](#4-connect-the-converter)
-  - [5. Check that everything is ready](#5-check-that-everything-is-ready)
+  - [1. Download PESU Downloader](#1-download-pesu-downloader)
+  - [2. Add it to your browser](#2-add-it-to-your-browser) ([Firefox](#using-firefox))
+  - [3. Run the installer](#3-run-the-installer)
+  - [4. Open it and check](#4-open-it-and-check)
 - [How to use it](#how-to-use-it)
 - [Rename anything](#rename-anything)
 - [While it runs](#while-it-runs)
@@ -88,29 +86,22 @@ Downloads/
 
 ## Before you start
 
-**New to this? No problem.** You don't need to know any coding, and you don't need git, a terminal or a GitHub account. Here's everything you need:
+**No coding needed.** You don't need git, a GitHub account or anything installed beforehand.
 
-| What | Notes |
+| You need | Notes |
 |---|---|
 | 💻 **A laptop or desktop** with Windows, macOS or Linux | Phones and tablets can't run extensions like this. |
-| 🌐 **A supported browser:** Chrome, Edge, Brave, Firefox, Vivaldi or Arc | **Windows already has Edge.** On a Mac, install [Chrome](https://www.google.com/chrome/) for free. **Safari is not supported.** |
-| 🔑 **Your PESU Academy login** | The extension uses the login of the browser it's installed in, so log in to pesuacademy.com in that browser. |
-| 📊 **Microsoft Office or LibreOffice** (LibreOffice is free) and **Python** (free) | Needed to turn PowerPoint and Word files into PDF, and most PESU courses have them. Don't have them? [Step 1](#1-install-python-and-office-or-libreoffice) shows how to install them. |
-| ⏱️ **About 5 minutes** and an internet connection | Longer if the installer has to download Python or LibreOffice (LibreOffice is about 350 MB). |
+| 🌐 **Chrome, Edge, Brave, Firefox, Vivaldi or Arc** | Windows already has Edge. **Safari isn't supported** (Apple only allows paid, Xcode-built Safari extensions), so on a Mac use Chrome or Firefox. |
+| 🔑 **Your PESU Academy login** | Log in to pesuacademy.com in the browser you add the extension to. |
+| ⏱️ **About 5 minutes** | Longer if the installer has to download Python or LibreOffice (LibreOffice is about 350 MB). |
 
 <details>
 <summary><b>Never unzipped a file or found your Downloads folder? Read this first.</b></summary>
 
-- **Downloads folder:**
-  - On Windows, open **File Explorer** (the yellow folder icon on the taskbar, or press <kbd>Win</kbd> + <kbd>E</kbd>) and click **Downloads** on the left.
-  - On a Mac, open **Finder** and click **Downloads** in the sidebar.
-- **Unzipping (extracting) a ZIP file:**
-  - On Windows, right-click the `.zip` file, choose **Extract All…**, then **Extract**.
-  - On a Mac, just double-click the `.zip` file.
-  - You get a normal folder, here called `Pesu_Merger-main`. Use that folder, not the `.zip`.
-- **Moving a folder:** drag it onto **Documents** in the sidebar, or right-click it, **Cut**, open Documents and **Paste**.
+- **Downloads folder:** on Windows, open **File Explorer** (<kbd>Win</kbd> + <kbd>E</kbd>) and click **Downloads** on the left. On a Mac, open **Finder** and click **Downloads** in the sidebar.
+- **Unzipping a ZIP file:** on Windows, right-click it → **Extract All…** → **Extract**. On a Mac, double-click it. Use the folder you get, not the `.zip`.
+- **Moving a folder:** drag it onto **Documents** in the sidebar.
 - **Typing an address like `chrome://extensions`:** click the bar at the top of the browser where website addresses go, type it exactly and press <kbd>Enter</kbd>.
-- **The `extension` folder** is the one that has a file called `manifest.json` inside it. That's the folder the browser asks for.
 
 </details>
 
@@ -118,134 +109,48 @@ Downloads/
 
 ## Install (about 5 minutes)
 
-Works in **Chrome, Edge, Brave, Chromium, Vivaldi, Arc and Firefox**, on **Windows, macOS and Linux**. Firefox has a few different steps: [see below](#using-firefox).
+Four steps, in order. Works on **Windows, macOS and Linux**.
 
-> [!IMPORTANT]
-> **Do all five steps, in order.** Don't skip step 1. Most courses share slides as PowerPoint and notes as Word files. Without Office or LibreOffice, those are only saved as they are and are left out of your combined PDFs.
+### 1. Download PESU Downloader
 
-> [!WARNING]
-> **Safari is not supported.** Apple only allows Safari extensions that are built with Xcode on a Mac and signed with a paid Apple developer account. **On a Mac, use Chrome, Edge, Brave or Firefox for PESU downloads** and keep Safari for everything else. Opera may work but isn't tested.
+1. Near the top of this page, click the green **`<> Code`** button, then **Download ZIP**.
+2. Unzip it ([how?](#before-you-start)). You get a folder called **`Pesu_Merger-main`**.
+3. Move that folder into **Documents** and leave it there. The browser loads the extension from this folder, so it stops working if you delete or move it.
 
-### 1. Install Python and Office or LibreOffice
+Use git? `git clone https://github.com/VismayHS/Pesu_Merger.git` works too.
 
-The extension uses these to turn PowerPoint and Word files into PDF. Both are free (except Microsoft Office). Skip any part you already have.
+### 2. Add it to your browser
 
-> [!TIP]
-> **Shortcut:** the installer in [step 4](#4-connect-the-converter) checks for all of this and offers to install anything that's missing. On Windows it can install both Python and LibreOffice for you. So if this step feels like a lot, go straight to step 2 and let the installer handle it.
+1. Go to the extensions page: type `chrome://extensions` in the address bar (Chrome, Chromium, Arc). In other browsers it's `edge://extensions`, `brave://extensions` or `vivaldi://extensions`.
+2. Turn on **Developer mode** (top-right corner; in Edge it's in the left sidebar). This only lets you add extensions from a folder.
+3. Click **Load unpacked**, open `Pesu_Merger-main`, select the **`extension`** folder (the one with `manifest.json` inside) and press **Select Folder**.
+4. Click the puzzle-piece icon 🧩 in the toolbar and **pin** PESU Downloader.
 
-<details open>
-<summary><b>🪟 Windows</b></summary>
+If the browser later warns about "developer mode extensions", click **Keep**. That's normal for extensions added this way.
 
-**a) Python**
+#### Using Firefox?
 
-1. Go to **[python.org/downloads](https://www.python.org/downloads/)** and click the big yellow **Download Python 3.x** button.
-2. Open the downloaded file.
-3. ⚠️ **On the first screen, tick "Add python.exe to PATH"** at the bottom. This is important.
-4. Click **Install Now**. When it says *Setup was successful*, click **Close**.
+Firefox (version 128 or newer) adds extensions differently:
 
-Install it from python.org, not from the Microsoft Store.
+1. Go to `about:debugging#/runtime/this-firefox` and click **Load Temporary Add-on…**.
+2. Open the `extension` folder and pick **`manifest.json`**.
+3. If PESU Downloader asks for access to pesuacademy.com, click **Allow access**.
 
-**b) Microsoft Office or LibreOffice**
+Firefox removes temporary add-ons when it closes, so repeat this each time you start Firefox (about 10 seconds). Chrome, Edge and Brave keep it installed.
 
-- **Already have Microsoft Office?** Press the <kbd>Win</kbd> key and type **PowerPoint**. If PowerPoint shows up, you're done: skip to step 2. (The installed app is needed. Office in the browser doesn't count.)
-- **No Office?** Install **LibreOffice**. It's free:
-  1. Go to **[libreoffice.org/download](https://www.libreoffice.org/download/download-libreoffice/)** and click **Download** (it picks Windows for you).
-  2. Open the downloaded file and click **Next** through the setup with the default options, then **Install**.
-  3. If Windows asks *"Do you want to allow this app to make changes?"*, click **Yes**.
+### 3. Run the installer
 
-</details>
+Most courses share slides as PowerPoint and notes as Word files. The installer sets up what turns them into PDF:
 
-<details>
-<summary><b>🍎 macOS</b></summary>
-
-On a Mac the converter uses **LibreOffice**, even if you have Microsoft Office, so install LibreOffice either way.
-
-**a) Python:** go to **[python.org/downloads](https://www.python.org/downloads/)**, click **Download Python 3.x**, open the downloaded file and click **Continue** → **Install**.
-
-**b) LibreOffice:**
-
-1. Check your Mac's chip: Apple menu  → **About This Mac**. It says either **Chip: Apple M…** or **Processor: Intel**.
-2. Go to **[libreoffice.org/download](https://www.libreoffice.org/download/download-libreoffice/)** and choose **macOS (Apple Silicon)** for an M chip, or **macOS x86_64** for Intel. Then click **Download**.
-3. Open the downloaded file and **drag LibreOffice into the Applications folder**.
-
-Use Homebrew? Then `brew install python` and `brew install --cask libreoffice` do the same.
-
-</details>
-
-<details>
-<summary><b>🐧 Linux</b></summary>
-
-The converter uses **LibreOffice** on Linux.
-
-```bash
-sudo apt install python3 libreoffice      # Fedora: sudo dnf install python3 libreoffice
-```
-
-</details>
-
-### 2. Download PESU Downloader
-
-**Option A (easiest, no git needed):**
-
-1. Near the top of this page, click the green **`<> Code`** button.
-2. Click **Download ZIP**. It's saved to your **Downloads** folder.
-3. Unzip it ([how?](#before-you-start)). You get a folder called **`Pesu_Merger-main`**.
-4. Move that folder into **Documents** (or anywhere you won't delete it by accident).
-
-**Option B (if you use git):**
-
-```bash
-git clone https://github.com/VismayHS/Pesu_Merger.git
-```
-
-> [!IMPORTANT]
-> Keep the folder somewhere permanent, such as **Documents**. The browser loads the extension from this folder, so it stops working if you delete or move the folder.
-
-### 3. Add the extension to your browser
-
-1. Open the extensions page. Type one of these into the address bar:
-
-   | Browser | Address |
-   |---|---|
-   | Chrome / Chromium / Arc | `chrome://extensions` |
-   | Brave | `brave://extensions` |
-   | Edge | `edge://extensions` |
-   | Vivaldi | `vivaldi://extensions` |
-
-2. Turn on **Developer mode**. It's a switch in the top-right corner; in Edge it's in the left sidebar. This only lets you add extensions from a folder. It's safe, and it doesn't change anything else.
-3. Click **Load unpacked**.
-4. In the window that opens, go into the project folder (`Pesu_Merger-main`), click the **`extension`** folder once to select it, and press **Select Folder**. Choose that folder itself, not the outer `Pesu_Merger-main` folder.
-5. **PESU Downloader** now appears in the list. Click the puzzle-piece icon 🧩 in the toolbar and **pin** it so it's always one click away.
-
-If the browser later shows a message about "developer mode extensions", just close it or click **Keep**. That's normal for extensions added this way.
-
-### Using Firefox?
-
-Firefox works too (version 128 or newer), but it adds extensions differently. Do this instead of step 3:
-
-1. In Firefox, type **`about:debugging#/runtime/this-firefox`** in the address bar and press <kbd>Enter</kbd>.
-2. Click **Load Temporary Add-on…**.
-3. Go into the project folder, open the **`extension`** folder and pick the file **`manifest.json`**.
-4. If a banner on the PESU Downloader page asks for access to pesuacademy.com, click **Allow access**.
-
-> [!NOTE]
-> Firefox removes **temporary** add-ons when you close it, so you'll need to repeat these steps each time you start Firefox. They take about 10 seconds. If you'd rather not, use Chrome, Edge or Brave, where it stays installed.
-
-### 4. Connect the converter
-
-The installer does everything in one go:
-
-- It checks for **Python** and for **Microsoft Office or LibreOffice**.
-- If something is missing, it asks *"Install it now? [Y/n]"*. Press <kbd>Enter</kbd> to say yes, and it installs it for you. LibreOffice is about a 350 MB download.
-- It connects the extension to every supported browser on your computer, Firefox included, then tests that everything works.
+- It checks for **Python** and for **Microsoft Office or LibreOffice**. If one is missing, it asks *"Install it now? [Y/n]"*. Press <kbd>Enter</kbd> and it installs it for you. LibreOffice is free.
+- It connects the extension to every supported browser on your computer, Firefox included, and tests that it works.
 
 <details open>
 <summary><b>🪟 Windows</b></summary>
 
-1. Open the project folder (`Pesu_Merger-main`), then the **`native-host`** folder.
-2. **Double-click `install.bat`**. If Windows asks whether to run it, click **Run**. If it says *"Windows protected your PC"*, click **More info** → **Run anyway**.
-3. A black window shows what it found. If it asks to install Python or LibreOffice, press <kbd>Enter</kbd>. For LibreOffice, Windows asks *"Do you want to allow this app to make changes?"*: click **Yes**.
-4. When it says **ALL SET!**, press any key to close the window.
+1. Open `Pesu_Merger-main` → **`native-host`** and **double-click `install.bat`**.
+2. If it says *"Windows protected your PC"*, click **More info** → **Run anyway**.
+3. If it asks to install Python or LibreOffice, press <kbd>Enter</kbd>. When Windows asks *"Do you want to allow this app to make changes?"*, click **Yes**.
 
 </details>
 
@@ -253,56 +158,58 @@ The installer does everything in one go:
 <summary><b>🍎 macOS</b></summary>
 
 1. Open **Terminal**: press <kbd>⌘</kbd> + <kbd>Space</kbd>, type **Terminal** and press <kbd>Enter</kbd>.
-2. Type `bash` followed by a space. **Don't press Enter yet.**
-3. In Finder, open the project folder, then **`native-host`**, and **drag the file `install.sh` into the Terminal window**. Its location appears after `bash `.
-4. Press <kbd>Enter</kbd>. When it says **ALL SET!**, you can close Terminal.
+2. Type `bash` and a space. Then drag **`install.sh`** from the `native-host` folder into the Terminal window and press <kbd>Enter</kbd>.
 
-If you use Homebrew, the installer can install Python and LibreOffice for you. Without Homebrew, it opens the right download page and tells you what to click.
+With Homebrew it installs Python and LibreOffice for you. Without it, it opens the download pages and tells you what to click. On a Mac the converter always uses LibreOffice, even if you have Microsoft Office.
 
 </details>
 
 <details>
 <summary><b>🐧 Linux</b></summary>
 
-From the project folder:
-
-```bash
-bash native-host/install.sh
-```
-
-It can install Python and LibreOffice with apt, dnf, pacman or zypper. It asks for your password first.
-
-A **Snap or Flatpak** browser can't start local helpers. Use the `.deb`/`.rpm` build of Chrome, Brave or Edge.
+From the project folder, run `bash native-host/install.sh`. It installs what's missing with apt, dnf, pacman or zypper, and asks for your password first. Snap or Flatpak browsers can't start local helpers, so use the `.deb`/`.rpm` build of Chrome, Brave or Edge.
 
 </details>
 
-**It says NOT FINISHED?** Something is still missing, and the window tells you exactly what to do. Usually that's installing Python or LibreOffice from the page it opened for you, then running the installer again.
+Wait until it says **ALL SET!** If it says **NOT FINISHED**, it tells you exactly what's still missing. Do that, then run the installer again.
+
+<details>
+<summary>Prefer to install Python and LibreOffice yourself?</summary>
+
+- **Python:** [python.org/downloads](https://www.python.org/downloads/). On Windows, tick **"Add python.exe to PATH"** on the first screen, and don't use the Microsoft Store version.
+- **LibreOffice:** [libreoffice.org/download](https://www.libreoffice.org/download/download-libreoffice/). On a Mac, choose Apple Silicon for an M chip or x86_64 for Intel, and drag it into **Applications**. On Windows, an installed Microsoft Office works too (Office in the browser doesn't).
+- **Linux:** `sudo apt install python3 libreoffice` (Fedora: `sudo dnf install python3 libreoffice`).
+
+Then run the installer anyway, because it's what connects the extension.
+
+</details>
 
 > Moved the project folder later? Run the installer again. To remove the converter, run `native-host\uninstall.bat` (Windows) or `bash native-host/uninstall.sh` (macOS/Linux).
 
-### 5. Check that everything is ready
+### 4. Open it and check
 
-Restart your browser once, then open **PESU Downloader** by clicking its icon. The top-right corner should say **Converter: MS Office** or **Converter: LibreOffice** (or both). 🎉 You're ready: see [How to use it](#how-to-use-it).
+1. **Restart your browser** once.
+2. Open **PESU Downloader** with its toolbar icon.
+3. The top-right corner should say **Converter: MS Office** or **Converter: LibreOffice**. 🎉 You're ready: see [How to use it](#how-to-use-it).
 
-If a banner says **Set up the converter** or **Install LibreOffice**, press **Re-check**. If it still shows, see [Troubleshooting](#troubleshooting). If you press **Start** while the converter isn't ready, the extension warns you first, so you can set it up or choose **Start anyway**.
+If a banner says **Set up the converter** or **Install LibreOffice**, press **Re-check**, or see [Troubleshooting](#troubleshooting). If you press **Start** before the converter is ready, the extension warns you first.
 
 ---
 
 ## How to use it
 
-1. **Log in** to [pesuacademy.com](https://www.pesuacademy.com) in the same browser.
-2. **Open the extension:** click its icon, or the **⬇ PESU Downloader** button that appears on PESU pages.
-3. **Courses:** pick a semester, tick the courses you want and press **Scan courses**.
-4. **Content:** pick the categories (Slides, Notes, Assignments, Question Bank, Question Answers, FAQs, MCQs, References), then untick any units you don't need. The table shows how many files each unit has.
+1. **Log in** to [pesuacademy.com](https://www.pesuacademy.com) and open the extension: click its icon, or the **⬇ PESU Downloader** button on PESU pages.
+2. **Courses:** pick a semester, tick the courses you want and press **Scan courses**.
+3. **Content:** pick the categories (Slides, Notes, Assignments, Question Bank, Question Answers, FAQs, MCQs, References), then untick any units you don't need. The table shows how many files each unit has.
 
    <img src="docs/images/content.png" alt="Choosing categories and units" width="100%">
 
-5. **Output:** choose how files are combined, plus a few extras ([explained below](#options-explained)).
+4. **Output:** choose how files are combined, plus a few extras ([explained below](#options-explained)).
 
    <img src="docs/images/output.png" alt="Output options" width="100%">
 
-6. Check the **Your download** panel on the right. It shows exactly which folders and files you'll get.
-7. Press **Start**. Keep the tab open until it says **All done**, then press **Open folder**.
+5. Check the **Your download** panel on the right. It shows exactly which folders and files you'll get.
+6. Press **Start**. Keep the tab open until it says **All done**, then press **Open folder**.
 
 ---
 
@@ -431,8 +338,9 @@ The extension talks **only** to `pesuacademy.com` and its file server `files.pes
 <details>
 <summary><b>"Set up the converter" or "Install LibreOffice" keeps showing</b></summary>
 
-- Run the installer for your system ([step 4](#4-connect-the-converter)) and read its last line. **ALL SET!** means it worked: restart the browser once and press **Re-check**. **NOT FINISHED** tells you what's still missing.
-- Check what the installer would do without changing anything: `native-host\install.bat -DryRun` (Windows) or `bash native-host/install.sh --dry-run` (macOS/Linux).
+- Run the installer again ([step 3](#3-run-the-installer)) and read its last line. **ALL SET!** means it worked: restart the browser once and press **Re-check**. **NOT FINISHED** tells you what's still missing.
+- To see what the installer would do without changing anything: `native-host\install.bat -DryRun` (Windows) or `bash native-host/install.sh --dry-run` (macOS/Linux).
+- macOS: LibreOffice must be in `/Applications/LibreOffice.app`.
 - Linux: Snap/Flatpak browsers can't run helpers. Use the `.deb`/`.rpm` version of the browser.
 
 </details>
@@ -447,13 +355,6 @@ The extension talks **only** to `pesuacademy.com` and its file server `files.pes
 </details>
 
 <details>
-<summary><b>Windows: "Python was not found"</b></summary>
-
-Install Python from [python.org](https://www.python.org/downloads/) with **Add to PATH** ticked. The Microsoft Store shortcut doesn't work. Then run `install.bat` again.
-
-</details>
-
-<details>
 <summary><b>"Log in to PESU Academy"</b> keeps showing</summary>
 
 Log in at pesuacademy.com **in the same browser and profile**. The extension notices by itself within a few seconds. You can also press **Continue**.
@@ -464,13 +365,6 @@ Log in at pesuacademy.com **in the same browser and profile**. The extension not
 <summary><b>A PowerPoint file failed to convert</b></summary>
 
 The helper tries MS Office first, then LibreOffice. If both fail, the original file is saved instead and listed in `_Report.txt`.
-
-</details>
-
-<details>
-<summary><b>macOS: LibreOffice is installed but not found</b></summary>
-
-It must be in `/Applications/LibreOffice.app`. Move it there and run `install.sh` again.
 
 </details>
 

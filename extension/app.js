@@ -626,8 +626,7 @@ async function onLoginContinue() {
 
 // ------------------------------------------------------------------ converter helper
 const GUIDE_URL = 'https://github.com/VismayHS/Pesu_Merger';
-const SETUP_GUIDE = GUIDE_URL + '#4-connect-the-converter';
-const OFFICE_GUIDE = GUIDE_URL + '#1-install-python-and-office-or-libreoffice';
+const SETUP_GUIDE = GUIDE_URL + '#3-run-the-installer';
 
 async function checkHelper() {
   pill('#chipHelper', '', 'Checking converter…');
@@ -666,7 +665,7 @@ async function checkHelper() {
       : 'The converter is set up, but it can\'t find Microsoft Office or LibreOffice (free).';
     showBanner('Install LibreOffice: it\'s needed for PowerPoint and Word files',
       why + ' Run <code id="helperCmd"></code> again and it installs LibreOffice for you, or use the button. Then press Re-check.',
-      OFFICE_GUIDE, true);
+      SETUP_GUIDE, true);
   }
   syncConvertWarn();
 }
@@ -685,7 +684,7 @@ async function converterGate(plan) {
   if (state.converter === 'ok') return true;
   $('#convertWarnTitle').textContent = state.converter === 'missing'
     ? 'The converter isn\'t set up yet' : 'Microsoft Office or LibreOffice is missing';
-  $('#btnConvertGuide').href = state.converter === 'missing' ? SETUP_GUIDE : OFFICE_GUIDE;
+  $('#btnConvertGuide').href = SETUP_GUIDE;
   const w = $('#convertWarn');
   w.classList.remove('hidden');
   w.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
