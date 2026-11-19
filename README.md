@@ -31,7 +31,7 @@ Made by **Vismay H S**
 
 - [What you get](#what-you-get)
 - [Before you start](#before-you-start)
-- [Install (about 15 minutes)](#install-about-15-minutes)
+- [Install (about 5 minutes)](#install-about-5-minutes)
   - [1. Install Python and Office or LibreOffice](#1-install-python-and-office-or-libreoffice)
   - [2. Download PESU Downloader](#2-download-pesu-downloader)
   - [3. Add the extension to your browser](#3-add-the-extension-to-your-browser)
@@ -96,7 +96,7 @@ Downloads/
 | 🌐 **A supported browser:** Chrome, Edge, Brave, Firefox, Vivaldi or Arc | **Windows already has Edge.** On a Mac, install [Chrome](https://www.google.com/chrome/) for free. **Safari is not supported.** |
 | 🔑 **Your PESU Academy login** | The extension uses the login of the browser it's installed in, so log in to pesuacademy.com in that browser. |
 | 📊 **Microsoft Office or LibreOffice** (LibreOffice is free) and **Python** (free) | Needed to turn PowerPoint and Word files into PDF, and most PESU courses have them. Don't have them? [Step 1](#1-install-python-and-office-or-libreoffice) shows how to install them. |
-| ⏱️ **About 15 minutes** and an internet connection | A bit longer if you need to download LibreOffice. |
+| ⏱️ **About 5 minutes** and an internet connection | Longer if the installer has to download Python or LibreOffice (LibreOffice is about 350 MB). |
 
 <details>
 <summary><b>Never unzipped a file or found your Downloads folder? Read this first.</b></summary>
@@ -116,7 +116,7 @@ Downloads/
 
 ---
 
-## Install (about 15 minutes)
+## Install (about 5 minutes)
 
 Works in **Chrome, Edge, Brave, Chromium, Vivaldi, Arc and Firefox**, on **Windows, macOS and Linux**. Firefox has a few different steps: [see below](#using-firefox).
 
